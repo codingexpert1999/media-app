@@ -88,7 +88,7 @@ export const login = (req: Request, res: Response) => {
             }
 
             let payload = {
-                id: user.id, username: user.username, email: user.email
+                username: user.username, email: user.email
             }
 
             sign(payload, jwtSecret, {expiresIn: 86400000}, (err, token) => {
