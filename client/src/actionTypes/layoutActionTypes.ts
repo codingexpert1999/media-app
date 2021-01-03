@@ -1,0 +1,6 @@
+export const OPEN_FORM = "OPEN_FORM";
+export const CLOSE_FORM = "CLOSE_FORM";
+export const FORM_ERROR_OCCURED = "FORM_ERROR_OCCURED";
+export const REMOVE_FORM_ERROR = "REMOVE_FORM_ERROR";
+export const CLEAR_FORM_ERRORS = "CLEAR_FORM_ERRORS";
+export const SUBMIT_FORM = "SUBMIT_FORM";

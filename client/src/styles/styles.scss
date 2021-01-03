@@ -1,0 +1,95 @@
+@import url('https://fonts.googleapis.com/css2?family=Pacifico&display=swap');
+
+$purple-color: #6C63FF;
+$dark-color: #2F2E41;
+
+*{
+    box-sizing: border-box !important;
+}
+
+nav{
+    background: $purple-color !important;
+    color: white !important;
+    height: 70px;
+    user-select: none !important;
+
+    .container-fluid{
+        max-width: 1450px !important;
+    }
+
+    .navbar-brand{
+        font-family: "Pacifico", sans-serif !important;
+        font-size: 2rem !important;
+        user-select: none;
+    }
+
+    .nav-link{
+        color: white !important;
+        font-size: 1.1rem;
+        user-select: none !important;
+    
+        &:hover{
+            cursor: pointer;
+        }
+    }
+
+    .dropdown-toggle img{
+        height: 25px;
+        width: 25px;
+        border-radius: 50%;
+        margin-right: 5px;
+        user-select: none !important;
+    }
+
+    .dropdown-item{
+        cursor: pointer !important;
+        user-select: none !important;
+    }
+}
+
+.modal{
+    display: block;
+    top: 100px !important;
+
+    .form-text{
+        color: #ccc !important;
+    }
+}
+
+.form-control::placeholder{
+    color: #ccc !important;
+}
+
+.layout-container{
+    height: calc(100vh - 130px);
+
+    .img-container{
+        width: 50%;
+    }
+    
+    .layout-text{
+        width: 50%;
+        margin-left: 40px;
+        color: $dark-color !important;
+    
+        .dot{
+            display: inline-block;
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background: $purple-color;
+            margin-right: 10px;
+        }
+    }
+}
+
+footer{
+    height: 60px;
+    border-top: 1px solid $dark-color;
+    margin: 0;
+    padding: 0;
+
+    p{
+        margin: 0 !important;
+    }
+}
