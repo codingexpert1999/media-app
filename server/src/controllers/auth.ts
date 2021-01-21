@@ -76,7 +76,7 @@ export const login = (req: Request, res: Response) => {
             if(err) throw err;
 
             if(result.length === 0){
-                return res.status(404).json({error: "User not found!"})
+                return res.status(404).json({error: "Email or password is incorrect!"})
             }
 
             let user = result[0];
@@ -84,7 +84,7 @@ export const login = (req: Request, res: Response) => {
             let isMatch = await compare(password, user.password);
 
             if(!isMatch){
-                return res.status(404).json({error: "False credentials!"})
+                return res.status(404).json({error: "Email or password is incorrect!"})
             }
 
             let payload = {
