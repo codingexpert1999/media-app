@@ -2,9 +2,17 @@
 
 $purple-color: #6C63FF;
 $dark-color: #2F2E41;
+$green-color: #00A400;
+$green-color-darker: #008C00;
+
+$light-gray: #F0F2F5;
 
 *{
     box-sizing: border-box !important;
+}
+
+body{
+    background: $light-gray;
 }
 
 nav{
@@ -91,5 +99,190 @@ footer{
 
     p{
         margin: 0 !important;
+    }
+}
+
+.dashboard{
+    max-width: 1000px;
+    min-height: calc(100vh - 70px);
+    padding: 30px 10px;
+
+    .sidenav{
+        min-width: 250px;
+        position: fixed !important;
+        top: 100px !important;
+        background: white;
+        list-style: none !important;
+        font-size: 1.1rem;
+        border: 1px solid rgba(0,0,0,.125);
+        border-radius: 5px;
+        padding: 15px 0 !important;
+
+        li{
+            margin-bottom: 15px;
+            text-align: center;
+            padding: 7px 15px;
+
+            &:last-child{
+                margin-bottom: 0;
+            }
+
+            &.clickable{
+                cursor: pointer;
+                &:hover{
+                    background: #f9f9f9;
+                }
+            }
+
+            button{
+                width: 100% !important;
+                font-size: 1.1rem !important;
+
+                &.btn-add-friend{
+                    background: $green-color;
+                    color: white;
+
+                    &:hover{
+                        background: $green-color-darker;
+                    }
+                }
+            } 
+        }
+
+        .friends{
+            overflow-y: scroll;
+            max-height: 300px;
+
+            &::-webkit-scrollbar{
+                width: 8px;
+            }
+            &::-webkit-scrollbar-thumb{
+                background: #777;
+                border-radius: 5px;
+            }
+
+            .friend{
+                cursor: pointer;
+                
+                & > span{
+                    position: relative;
+                    margin-right: 10px;
+    
+                    img{
+                        max-width: 35px;
+                        border-radius: 50%;
+                    }
+    
+                    .dot{
+                        position: absolute;
+                        display: inline-block;
+                        height: 9px;
+                        width: 9px;
+                        border-radius: 50%;
+                        background: green;
+                        right: 5px;
+                        bottom: -10px;
+                    }
+                }
+            }
+        }
+
+        h4{
+            text-align: center;
+            padding-bottom: 10px;
+        }
+    }
+
+    .sidenav-left{
+        left: 2% !important;
+    }
+
+    .sidenav-right{       
+        right: 2% !important;
+    }
+
+    .posts{
+        .card{
+            margin-bottom: 30px;
+        }
+
+        img{
+            max-width: 35px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+
+        .posted-by{
+            margin-bottom: 10px;
+        }
+
+        .card-text{
+            margin-bottom: 10px !important;
+        }
+
+        .time-posted{
+            color: #ccc;
+            margin-left: 15px;
+            font-size: .9rem;
+        }
+
+        .post-icons{
+            &>span{
+              margin-right: 25px;
+              color: #999;
+              user-select: none;
+
+              span:first-child{
+                  cursor: pointer;
+                  user-select: none;
+              }
+
+              span:last-child{
+                  margin-left: 8px;
+              }
+            }
+
+            span:last-child{
+                margin-right: 0;
+            }
+        }
+
+        .show-comments{
+            display: block;
+            width: 70%;
+            margin: 20px auto;
+        }
+
+        .show-answers{
+            display: block;
+            width: 30%;
+            margin: 20px 0;
+        }
+
+        .answers{
+            padding-top: 10px;
+        }
+
+        .comment, .answer{
+            width: 90%;
+            margin-left: 10%;
+            margin-bottom: 10px;
+
+            &:last-child{
+                margin-bottom: 0;
+            }
+        }
+    }
+}
+
+@media (max-width: 1600px) {
+    .dashboard{
+        max-width: 800px;
+    }
+}
+
+@media (max-width: 1400px) {
+    .dashboard{
+        max-width: 600px;
     }
 }

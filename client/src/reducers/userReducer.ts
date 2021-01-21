@@ -3,11 +3,11 @@ import { UserPayload, UserState } from "../interfaces/user";
 
 const initialState:UserState = {
     user: {
-        username: "",
-        email: ""
+        username: "john doe",
+        email: "john@gmail.com"
     },
-    token: "",
-    isAuthenticated: false
+    token: "test123",
+    isAuthenticated: true
 }
 
 const userReducer = (state=initialState, action: {type: string, payload: UserPayload}) => {
