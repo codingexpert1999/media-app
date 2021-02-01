@@ -1,0 +1,37 @@
+export interface User{
+    id: string;
+    username: string;
+    email: string;
+    password: string | undefined;
+}
+
+export interface UserPayload{
+    username: string;
+    email: string;
+}
+
+export interface Post{
+    id: number;
+    post_text: string;
+    post_image: string;
+    post_video: string;
+    likes: number;
+    profile_id: number;
+    created_at: string;
+}
+
+export interface Comment{
+    id: number;
+    comment_text: string;
+    likes: number;
+    profile_id: number;
+    created_at: string;
+}
+
+export interface Answer{
+    id: number;
+    answer_text: string;
+    likes: number;
+    profile_id: number;
+    created_at: string;
+}

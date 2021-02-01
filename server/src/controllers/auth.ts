@@ -33,7 +33,7 @@ export const signup = (req: Request, res: Response) => {
 
             let encryptedPassword = await hash(password, salt);
 
-            query = `INSERT INTO users(username, email, password) VALUES('${username}', '${email}', '${encryptedPassword}')`;
+            query = `CALL registerUser('${username}', '${email}', '${encryptedPassword}', '/assets/user.png')`;
 
             db.query(query, (err:MysqlError) => {
                 if(err) throw err;

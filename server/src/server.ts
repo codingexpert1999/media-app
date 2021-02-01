@@ -1,3 +1,17 @@
+import {Answer, Post, User, UserPayload, Comment} from './interfaces'
+
+declare global {
+    namespace Express {
+        interface Request {
+            user:User;
+            auth: UserPayload;
+            post: Post;
+            comment: Comment;
+            answer: Answer;
+        }
+    }
+}
+
 import express from 'express';
 import {config} from 'dotenv'
 import cors from 'cors';
@@ -5,6 +19,9 @@ import cors from 'cors';
 import db from './config/db';
 
 import authRoutes from "./routes/auth"
+import postRoutes from './routes/post'
+import commentRoutes from './routes/comment'
+import answerRoutes from './routes/answer'
 
 config();
 
@@ -26,7 +43,10 @@ app.use(express.urlencoded({extended: true}))
 
 // Routes
 app.use("/api", authRoutes);
+app.use("/api", postRoutes);
+app.use("/api", commentRoutes);
+app.use("/api", answerRoutes);
 
-const PORT = parseInt(process.env.PORT!) ||5000
+const PORT = parseInt(process.env.PORT!) || 5000
 
 app.listen(PORT, () => console.log(`Server started on port ${PORT}...`))
