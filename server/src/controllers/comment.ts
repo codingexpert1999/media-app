@@ -28,6 +28,7 @@ export const create = (req: Request, res: Response) => {
 
                 let comment = result[0];
                 comment.answers = [];
+                comment.username = req.user.username;
 
                 res.json(comment);
             })

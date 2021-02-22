@@ -71,6 +71,7 @@ export const create = (req: Request, res: Response) => {
 
                 let post = result[0];
                 post.comments = []
+                post.username = req.user.username;
 
                 res.json(post);
             })

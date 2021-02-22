@@ -27,6 +27,7 @@ export const create = (req: Request, res: Response) => {
                 if(err) throw err;
 
                 let answer = result[0];
+                answer.username = req.user.username;
 
                 res.json(answer);
             })
