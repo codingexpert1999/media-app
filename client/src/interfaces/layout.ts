@@ -2,6 +2,11 @@ export interface LayoutState{
     formType: string | null;
     formErrors: FormErrors;
     formSubmitted: boolean;
+    showModal: boolean;
+    modalType: string;
+    idToUseInModal: number;
+    postIndex: number;
+    commentIndex: number;
 }
 
 export interface FormErrors{
@@ -20,4 +25,7 @@ export interface LayoutPayload{
     formType: string;
     inputName: string;
     error: string;
+    modalType: string;
+    id: number;
+    index: number;
 }

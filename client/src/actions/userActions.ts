@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { LOGIN, REGISTER_USER } from '../actionTypes/userActionTypes';
+import { LOAD_USER, LOGIN, REGISTER_USER } from '../actionTypes/userActionTypes';
 import { API, getAxiosBody, getAxiosConfig } from '../helper';
 import {Dispatch} from 'redux'
 import { FORM_ERROR_OCCURED } from '../actionTypes/layoutActionTypes';
@@ -26,9 +26,7 @@ export const login = (formValues: Object) => {
             const body = getAxiosBody(formValues);
     
             const res = await axios.post(`${API}/login`, body, config);
-
-            console.log(res.data);
-            
+                        
             dispatch({type: LOGIN, payload: res.data});
         } catch (err) {
             dispatch({type: FORM_ERROR_OCCURED, payload: {error: err.response.data.error, inputName: "email"}});
@@ -36,3 +34,14 @@ export const login = (formValues: Object) => {
     }
 }
 
+export const loadUser = () => {
+    if(localStorage.getItem("token")){
+        return {
+            type: LOAD_USER
+        }
+    }else{
+        return {
+            type: "CANNOT_LOAD_USER"
+        }
+    }
+}

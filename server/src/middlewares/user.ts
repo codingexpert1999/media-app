@@ -31,6 +31,32 @@ export const userById = (req: Request, res: Response, next: NextFunction, id: nu
     }
 }
 
+export const profileById = (req: Request, res: Response, next: NextFunction, id: number) => {
+    try {
+        let query = `SELECT * FROM profiles WHERE id=${id}`;
+
+        db.query(query, (err: MysqlError, result) => {
+            if (err) throw err;
+
+            if (result.length === 0) {
+                return res.status(404).json({ error: "Profile does not exist" });
+            }
+
+            req.profile = result[0];
+
+            if(req.profile.user_id !== req.user.id){
+                return res.status(404).json({ error: "False Credentials. Wrong Profile!" });
+            }
+
+            next();
+        });
+    
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({error: err.message});
+    }
+}
+
 export const loginRequired = (req: Request, res: Response, next: NextFunction) => {
     try {
         let auth = req.headers.authorization?.split(" ")[1];

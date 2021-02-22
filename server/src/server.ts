@@ -1,4 +1,4 @@
-import {Answer, Post, User, UserPayload, Comment} from './interfaces'
+import {Answer, Post, User, UserPayload, Comment, Profile} from './interfaces'
 
 declare global {
     namespace Express {
@@ -8,6 +8,7 @@ declare global {
             post: Post;
             comment: Comment;
             answer: Answer;
+            profile: Profile;
         }
     }
 }
@@ -22,6 +23,7 @@ import authRoutes from "./routes/auth"
 import postRoutes from './routes/post'
 import commentRoutes from './routes/comment'
 import answerRoutes from './routes/answer'
+import profileRoutes from './routes/profile'
 
 config();
 
@@ -46,6 +48,7 @@ app.use("/api", authRoutes);
 app.use("/api", postRoutes);
 app.use("/api", commentRoutes);
 app.use("/api", answerRoutes);
+app.use("/api", profileRoutes);
 
 const PORT = parseInt(process.env.PORT!) || 5000
 

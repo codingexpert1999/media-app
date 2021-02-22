@@ -1,13 +1,14 @@
-import { REGISTER_USER, LOGIN } from "../actionTypes/userActionTypes";
+import { REGISTER_USER, LOGIN, LOAD_USER } from "../actionTypes/userActionTypes";
 import { UserPayload, UserState } from "../interfaces/user";
 
-const initialState:UserState = {
+const initialState: UserState = {
     user: {
-        username: "john doe",
-        email: "john@gmail.com"
+        id: 0,
+        username: "",
+        email: ""
     },
-    token: "test123",
-    isAuthenticated: true
+    token: "",
+    isAuthenticated: false
 }
 
 const userReducer = (state=initialState, action: {type: string, payload: UserPayload}) => {
@@ -16,7 +17,13 @@ const userReducer = (state=initialState, action: {type: string, payload: UserPay
     switch(type){
         case REGISTER_USER:
         case LOGIN:
+            localStorage.setItem("user", JSON.stringify(payload.user));
+            localStorage.setItem("token", JSON.stringify(payload.token));
             return {...state, user: payload.user, token: payload.token, isAuthenticated: true}
+        case LOAD_USER:
+            let user = JSON.parse(localStorage.getItem("user") + "");
+            let token = JSON.parse(localStorage.getItem("token") + "");
+            return {...state, user, token, isAuthenticated: true}
         default:
             return state;
     }

@@ -107,6 +107,20 @@ footer{
     min-height: calc(100vh - 70px);
     padding: 30px 10px;
 
+    .create-post{
+        position: fixed;
+        width: 600px;
+        height: fit-content;
+        top: 10%;
+        left: 50%;
+        transform: translateX(-50%);
+
+        textarea{
+            margin-bottom: 20px;
+            resize: none;
+        }
+    }
+
     .sidenav{
         min-width: 250px;
         position: fixed !important;
@@ -152,6 +166,8 @@ footer{
         .friends{
             overflow-y: scroll;
             max-height: 300px;
+            list-style: none;
+            padding: 0;
 
             &::-webkit-scrollbar{
                 width: 8px;
@@ -204,6 +220,73 @@ footer{
     .posts{
         .card{
             margin-bottom: 30px;
+            position: relative;
+
+            .update-form{
+                margin: 20px 0;
+
+                textarea{
+                    margin-bottom: 20px;
+                    resize: none;
+                }
+
+                .buttons button:first-child{
+                    margin-right: 20px;
+                }
+            }
+        }
+
+        .loading{
+            .spinner-border {
+                margin-right: 10px;
+            }
+
+            span{
+                font-size: 22px;
+            }
+        }
+
+        .options-button{
+            position: absolute;
+            z-index: 2;
+            right:10px;
+            top: 5px;
+            color: #555;
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+
+        .options{
+            position: absolute;
+            top: 5px;
+            list-style: none;
+            padding: 10px 0;
+            right: -110px;
+            width: fit-content;
+            background: white;
+
+            li{
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                padding: 5px 15px;
+                margin-bottom: 10px;
+                color: #333;
+                width: 100%;
+
+                &:hover{
+                    cursor: pointer;
+                    background: #f9f9f9;
+                }
+
+                &:last-child{
+                    margin-bottom: 0;
+                }
+
+                i{
+                    margin-left: 10px;
+                }
+            }
         }
 
         img{
@@ -267,10 +350,15 @@ footer{
             width: 90%;
             margin-left: 10%;
             margin-bottom: 10px;
+            position: relative;
 
             &:last-child{
                 margin-bottom: 0;
             }
+        }
+
+        .answer .options-button{
+            right: -5px;
         }
     }
 }

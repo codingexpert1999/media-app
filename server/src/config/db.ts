@@ -1,5 +1,6 @@
 import mysql from 'mysql';
 import { config } from "dotenv";
+import {promisify} from 'util'
 
 config();
 
@@ -16,5 +17,7 @@ const db = mysql.createConnection({
     password,
     database
 })
+
+export const asyncQuery = promisify(db.query).bind(db);
 
 export default db

@@ -3,21 +3,6 @@ import {Request, Response} from 'express';
 import {validationResult} from 'express-validator';
 import db from '../config/db';
 
-export const fetch = (req: Request, res: Response) => {
-    try {
-        let query = `SELECT * FROM answers WHERE comment_id=${req.comment.id} ORDER BY created_at DESC`;
-
-        db.query(query, (err:MysqlError, result) => {
-            if(err) throw err;
-
-            res.json(result);
-        })
-    } catch (err) {
-        console.log(err);
-        res.status(500).json({error: err.message});
-    }
-}
-
 export const create = (req: Request, res: Response) => {
     try {
         const errors = validationResult(req);
@@ -26,17 +11,25 @@ export const create = (req: Request, res: Response) => {
             return res.status(400).json({errors: errors.array()})
         }
 
-        const {answerText, profileId} = req.body;
+        const {answerText} = req.body;
 
         let query = `
             INSERT INTO answers(answer_text, profile_id, comment_id) 
-            VALUES('${answerText}', ${profileId}, ${req.comment.id})
+            VALUES('${answerText}', ${req.profile.id}, ${req.comment.id})
         `;
 
         db.query(query, (err:MysqlError) => {
             if(err) throw err;
 
-            res.json({message: "Answer created successfully!"})
+            query = `SELECT * FROM answers WHERE profile_id=${req.profile.id} ORDER BY created_at DESC LIMIT 1`;
+
+            db.query(query, (err: MysqlError, result) => {
+                if(err) throw err;
+
+                let answer = result[0];
+
+                res.json(answer);
+            })
         })
     } catch (err) {
         console.log(err);
@@ -56,11 +49,11 @@ export const update = (req: Request, res: Response) => {
 
         req.answer.answer_text = answerText;
 
-        const {answer_text, profile_id, id} = req.answer;
+        const {answer_text, id} = req.answer;
 
         let query = `
-            UPDATE answers SET answer_text='${answerText}'
-            WHERE id=${id} AND profile_id=${profile_id}
+            UPDATE answers SET answer_text='${answer_text}'
+            WHERE id=${id} AND profile_id=${req.profile.id}
         `;
 
         db.query(query, (err:MysqlError) => {
@@ -76,7 +69,7 @@ export const update = (req: Request, res: Response) => {
 
 export const remove = (req: Request, res: Response) => {
     try {
-        let query = `DELETE FROM answers WHERE id=${req.answer.id} AND profile_id=${req.answer.profile_id}`;
+        let query = `DELETE FROM answers WHERE id=${req.answer.id} AND profile_id=${req.profile.id}`;
 
         db.query(query, (err:MysqlError) => {
             if(err) throw err;
@@ -91,12 +84,22 @@ export const remove = (req: Request, res: Response) => {
 
 export const like = (req: Request, res: Response) => {
     try {
-        let query = `UPDATE answers SET likes=${req.answer.likes + 1} WHERE id=${req.answer.id}`;
+        let query = `SELECT * FROM answers_liked WHERE answer_id=${req.answer.id} AND profile_id=${req.profile.id}`;
 
-        db.query(query, (err: MysqlError) => {
+        db.query(query, (err: MysqlError, result) => {
             if(err) throw err;
 
-            res.json({message: "Answer liked"})
+            if(result.length === 1){
+                return res.status(400).json({error: "Answer already liked"})
+            }
+
+            query = `CALL hitLikeButton(TRUE, 'answer', ${req.answer.likes}, NULL, NULL, ${req.answer.id}, ${req.profile.id})`;
+
+            db.query(query, (err: MysqlError) => {
+                if(err) throw err;
+
+                res.json("Answer liked");
+            })
         })
     } catch (err) {
         console.log(err);
@@ -106,12 +109,22 @@ export const like = (req: Request, res: Response) => {
 
 export const unlike = (req: Request, res: Response) => {
     try {
-        let query = `UPDATE answers SET likes=${req.answer.likes - 1 <= 0 ? 0 : req.answer.likes - 1} WHERE id=${req.answer.id}`;
+        let query = `SELECT * FROM answers_liked WHERE answer_id=${req.answer.id} AND profile_id=${req.profile.id}`;
 
-        db.query(query, (err: MysqlError) => {
+        db.query(query, (err: MysqlError, result) => {
             if(err) throw err;
 
-            res.json({message: "Answer unliked"})
+            if(result.length === 0){
+                return res.status(400).json({error: "Answer isn't liked"})
+            }
+
+            query = `CALL hitLikeButton(FALSE, 'answer', ${req.answer.likes}, NULL, NULL, ${req.answer.id}, ${req.profile.id})`;
+
+            db.query(query, (err: MysqlError) => {
+                if(err) throw err;
+
+                res.json("Answer unliked");
+            })
         })
     } catch (err) {
         console.log(err);

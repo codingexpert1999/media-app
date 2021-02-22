@@ -1,4 +1,16 @@
-import { CLEAR_FORM_ERRORS, CLOSE_FORM, FORM_ERROR_OCCURED, SUBMIT_FORM, OPEN_FORM, REMOVE_FORM_ERROR } from "../actionTypes/layoutActionTypes"
+import { 
+    CLEAR_FORM_ERRORS, 
+    CLOSE_FORM, 
+    FORM_ERROR_OCCURED, 
+    SUBMIT_FORM, 
+    OPEN_FORM, 
+    REMOVE_FORM_ERROR, 
+    OPEN_MODAL, 
+    CLOSE_MODAL, 
+    SET_ID_TO_USE_IN_MODAL,
+    SET_POST_INDEX,
+    SET_COMMENT_INDEX
+} from "../actionTypes/layoutActionTypes"
 
 export const openForm = (formType: string) => {
     return {type: OPEN_FORM, payload: {formType}};    
@@ -22,4 +34,24 @@ export const clearFormErrors = () => {
 
 export const submitForm = () => {
     return {type: SUBMIT_FORM};
+}
+
+export const openModal = (modalType: string) => {
+    return {type: OPEN_MODAL, payload: {modalType}};    
+}
+
+export const closeModal = () => {
+    return {type: CLOSE_MODAL};    
+}
+
+export const setIdToUseInModal = (id: number) => {
+    return {type: SET_ID_TO_USE_IN_MODAL, payload: {id}}
+}
+
+export const setPostIndex = (index: number) => {
+    return {type: SET_POST_INDEX, payload: {index}}
+}
+
+export const setCommentIndex = (index: number) => {
+    return {type: SET_COMMENT_INDEX, payload: {index}}
 }

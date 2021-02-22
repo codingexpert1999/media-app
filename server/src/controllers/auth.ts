@@ -38,16 +38,26 @@ export const signup = (req: Request, res: Response) => {
             db.query(query, (err:MysqlError) => {
                 if(err) throw err;
 
-                let payload = {
-                    username, email
-                }
+                
 
-                sign(payload, jwtSecret, {expiresIn: 86400000}, (err, token) => {
+                query = `SELECT * FROM users WHERE username=${username} AND email=${email}`;
+
+                db.query(query, (err: MysqlError, result) => {
                     if(err) throw err;
 
-                    res.json({
-                        user: payload,
-                        token
+                    let user = result[0];
+
+                    let payload = {
+                        username, email, id: user.id
+                    }
+
+                    sign(payload, jwtSecret, {expiresIn: 86400000}, (err, token) => {
+                        if(err) throw err;
+    
+                        res.json({
+                            user: payload,
+                            token
+                        })
                     })
                 })
             })
@@ -88,7 +98,7 @@ export const login = (req: Request, res: Response) => {
             }
 
             let payload = {
-                username: user.username, email: user.email
+                username: user.username, email: user.email, id: user.id
             }
 
             sign(payload, jwtSecret, {expiresIn: 86400000}, (err, token) => {

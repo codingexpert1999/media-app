@@ -3,7 +3,7 @@ export const validateEmail = (email: string) => {
     return re.test(String(email).toLowerCase());
 }
 
-export const getAxiosConfig = (token="") => {
+export const getAxiosConfig = (token="", isSendingData=true) => {
     if(token === ""){
         return {
             headers: {
@@ -11,9 +11,15 @@ export const getAxiosConfig = (token="") => {
             }
         }
     }else{
-        return {
+        return isSendingData ? {
             headers: {
                 'Content-Type': "application/json",
+                Authorization: `Bearer ${token}`
+            }
+        } 
+            :
+        {
+            headers: {
                 Authorization: `Bearer ${token}`
             }
         }

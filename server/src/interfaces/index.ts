@@ -1,5 +1,5 @@
 export interface User{
-    id: string;
+    id: number;
     username: string;
     email: string;
     password: string | undefined;
@@ -34,4 +34,14 @@ export interface Answer{
     likes: number;
     profile_id: number;
     created_at: string;
+}
+
+export interface Profile{
+    id: number;
+    profile_image: string;
+    profile_description: string;
+    friends: number;
+    posts: number;
+    status: number;
+    user_id: number;
 }
