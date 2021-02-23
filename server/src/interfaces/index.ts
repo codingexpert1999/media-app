@@ -45,3 +45,9 @@ export interface Profile{
     status: number;
     user_id: number;
 }
+
+export interface Friendship{
+    id: number;
+    my_profile_id: number;
+    friend_profile_id: number;
+}

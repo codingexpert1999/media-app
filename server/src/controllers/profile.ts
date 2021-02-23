@@ -2,6 +2,7 @@ import {MysqlError} from 'mysql';
 import {Request, Response} from 'express';
 import db from '../config/db';
 import {validationResult} from 'express-validator';
+import { Friendship } from '../interfaces';
 
 export const fetch = (req: Request, res: Response) => {
     try {
@@ -140,15 +141,27 @@ export const getFriendRequests = (req: Request, res: Response) => {
 
 export const getFriends = (req: Request, res: Response) => {
     try {
-        let query = `SELECT id, friend_profile_id FROM friends WHERE my_profile_id=${req.profile.id}`;
+        let query = `SELECT * FROM friends WHERE my_profile_id=${req.profile.id} OR friend_profile_id=${req.profile.id}`;
 
         db.query(query, (err: MysqlError, result) => {
             if(err) throw err;
 
-            res.json(result);
+            let friends = result.map((friendship: Friendship) => {
+                let friend_profile_id: number;
+
+                if(friendship.my_profile_id === req.profile.id){
+                    friend_profile_id = friendship.friend_profile_id
+                }else{
+                    friend_profile_id = friendship.my_profile_id;
+                }
+
+                return {id: friendship.id, friend_profile_id}
+            })
+
+            res.json(friends);
         })
     } catch (err) {
         console.log(err);
-        res.status(500).json({error: err.message});
+        res.status(500).json({error: err.message})
     }
 }
