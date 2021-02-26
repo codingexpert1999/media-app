@@ -40,7 +40,7 @@ const postReducer = (state= initialState, action: {type: string, payload: PostPa
         case FETCH_POSTS:
             return {...state, posts: [...updatedPosts, ...payload.posts], loading: false}
         case CREATE_POST:
-            updatedPosts.push(payload.post)
+            updatedPosts.unshift(payload.post)
             return {...state, posts: updatedPosts}
         case UPDATE_POST:
             updatedPosts = updatedPosts.map((post) => post.id === payload.post.id ? payload.post : post)
@@ -69,7 +69,7 @@ const postReducer = (state= initialState, action: {type: string, payload: PostPa
 
             return {...state, posts: updatedPosts}
         case CREATE_COMMENT:
-            updatedPosts[payload.post_index].comments.push(payload.comment);
+            updatedPosts[payload.post_index].comments.unshift(payload.comment);
             return {...state, posts: updatedPosts}
         case UPDATE_COMMENT:
             updatedPosts[payload.post_index].comments = 
@@ -100,7 +100,7 @@ const postReducer = (state= initialState, action: {type: string, payload: PostPa
                 })
             return {...state, posts: updatedPosts}
         case CREATE_ANSWER:
-            updatedPosts[payload.post_index].comments[payload.comment_index].answers.push(payload.answer);
+            updatedPosts[payload.post_index].comments[payload.comment_index].answers.unshift(payload.answer);
             return {...state, posts: updatedPosts}
         case UPDATE_ANSWER:
             updatedPosts[payload.post_index].comments[payload.comment_index].answers = 

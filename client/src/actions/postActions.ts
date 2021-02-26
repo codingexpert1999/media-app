@@ -242,7 +242,7 @@ export const updateAnswer =
             const config = getAxiosConfig(token);
             const body = getAxiosBody({answerText: answer.answer_text})
 
-            const res = await axios.put(`${API}/answers/${answer.id}/${userId}/${profileId}`, body, config);
+            await axios.put(`${API}/answers/${answer.id}/${userId}/${profileId}`, body, config);
 
             dispatch({type: UPDATE_ANSWER, payload: {answer: answer, post_index, comment_index}})
         } catch (err) {

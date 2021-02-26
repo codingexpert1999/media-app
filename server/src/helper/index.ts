@@ -5,6 +5,6 @@ export const instanceOfUserPayload = (data: any): data is UserPayload => {
     return 'username' in data && "email" in data; 
 } 
 
-export const getAsyncMysqlResult = async (query: string) => {
+export const getAsyncMysqlResult = (query: string) => {
     return asyncQuery(query);
 }
