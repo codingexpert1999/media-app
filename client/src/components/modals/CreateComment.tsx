@@ -7,7 +7,7 @@ import { State } from '../../interfaces';
 const CreateComment = () => {
     const [commentText, setCommentText] = useState("");
 
-    const {user, token} = useSelector((state: State) => state.user)
+    const {user} = useSelector((state: State) => state.user)
     const {profile} = useSelector((state: State) => state.profile)
     const {idToUseInModal, postIndex} = useSelector((state: State) => state.layout)
 
@@ -16,7 +16,7 @@ const CreateComment = () => {
     const onSubmit = (e:React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
-        dispatch(createComment(token, user.id, profile.id, commentText, idToUseInModal, postIndex))
+        dispatch(createComment(user.id, profile.id, commentText, idToUseInModal, postIndex))
 
         dispatch(closeModal())
     }

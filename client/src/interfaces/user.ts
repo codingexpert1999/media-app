@@ -1,5 +1,4 @@
 export interface UserState{
-    token: string;
     isAuthenticated: boolean;
     user: User;
 }
@@ -12,5 +11,4 @@ export interface User{
 
 export interface UserPayload{
     user:User;
-    token: string;
 }

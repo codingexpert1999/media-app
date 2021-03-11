@@ -1,16 +1,18 @@
 import React, {useEffect} from 'react';
-import { useDispatch } from 'react-redux';
-import { loadUser } from './actions/userActions';
+import { useDispatch, useSelector } from 'react-redux';
+import { verifyUser } from './actions/userActions';
 import NavBar from './components/NavBar';
 import Routes from './components/routes/Routes';
 import {ToastContainer} from 'react-toastify'
+import { State } from './interfaces';
 
 
 function App() {
   const dispatch = useDispatch();
+  const {user} = useSelector((state: State) => state.user)
 
   useEffect(() => {
-    dispatch(loadUser())
+    dispatch(verifyUser(user.id));
   }, [])
 
   return (

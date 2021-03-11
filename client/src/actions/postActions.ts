@@ -27,12 +27,12 @@ import {
 import { Post, Comment, Answer } from "../interfaces/post"
 
 // Post Actions
-export const fetchPosts = (token: string, userId: number, profileId: number) => {
+export const fetchPosts = (userId: number, profileId: number) => {
     return async (dispatch:Dispatch) => {
         try {
             dispatch({type: POSTS_LOADING});
 
-            const config = getAxiosConfig(token, false);
+            const config = getAxiosConfig(false);
 
             const res = await axios.get(`${API}/posts/${userId}/${profileId}`, config);
 
@@ -43,10 +43,10 @@ export const fetchPosts = (token: string, userId: number, profileId: number) => 
     }
 }
 
-export const createPost = (token: string, userId: number, profileId: number, postText: string, postImage: string, postVideo: string) => {
+export const createPost = (userId: number, profileId: number, postText: string, postImage: string, postVideo: string) => {
     return async (dispatch:Dispatch) => {
         try {
-            const config = getAxiosConfig(token);
+            const config = getAxiosConfig();
             const body = getAxiosBody({postText, postImage, postVideo})
 
             const res = await axios.post(`${API}/posts/${userId}/${profileId}`, body, config);
@@ -58,10 +58,10 @@ export const createPost = (token: string, userId: number, profileId: number, pos
     }
 }
 
-export const updatePost = (token: string, userId: number, profileId: number, post: Post) => {
+export const updatePost = (userId: number, profileId: number, post: Post) => {
     return async (dispatch:Dispatch) => {
         try {
-            const config = getAxiosConfig(token);
+            const config = getAxiosConfig();
             const body = getAxiosBody({postText: post.post_text, postImage: post.post_image, postVideo: post.post_video})
 
             await axios.put(`${API}/posts/${post.id}/${userId}/${profileId}`, body, config);
@@ -73,10 +73,10 @@ export const updatePost = (token: string, userId: number, profileId: number, pos
     }
 }
 
-export const removePost = (token: string, userId: number, profileId: number, postId: number) => {
+export const removePost = (userId: number, profileId: number, postId: number) => {
     return async (dispatch:Dispatch) => {
         try {
-            const config = getAxiosConfig(token, false);
+            const config = getAxiosConfig(false);
 
             await axios.delete(`${API}/posts/${postId}/${userId}/${profileId}`, config);
 
@@ -87,12 +87,12 @@ export const removePost = (token: string, userId: number, profileId: number, pos
     }
 }
 
-export const likePost = (token: string, userId: number, profileId: number, postId: number) => {
+export const likePost = (userId: number, profileId: number, postId: number) => {
     return async (dispatch:Dispatch) => {
         try {
             dispatch({type: LIKE_BUTTON_CLICKED});
 
-            const config = getAxiosConfig(token, false);
+            const config = getAxiosConfig(false);
 
             await axios.put(`${API}/posts/${postId}/like/${userId}/${profileId}`, null,  config);
 
@@ -105,12 +105,12 @@ export const likePost = (token: string, userId: number, profileId: number, postI
     }
 }
 
-export const unlikePost = (token: string, userId: number, profileId: number, postId: number) => {
+export const unlikePost = (userId: number, profileId: number, postId: number) => {
     return async (dispatch:Dispatch) => {
         try {
             dispatch({type: LIKE_BUTTON_CLICKED});
 
-            const config = getAxiosConfig(token, false);
+            const config = getAxiosConfig(false);
 
             await axios.put(`${API}/posts/${postId}/unlike/${userId}/${profileId}`, null,  config);
 
@@ -123,10 +123,10 @@ export const unlikePost = (token: string, userId: number, profileId: number, pos
     }
 }
 
-export const getAllLikes = (token: string, userId: number, profileId: number) => {
+export const getAllLikes = (userId: number, profileId: number) => {
     return async (dispatch:Dispatch) => {
         try {
-            const config = getAxiosConfig(token, false);
+            const config = getAxiosConfig(false);
 
             const res = await axios.get(`${API}/posts/get_all_likes/${userId}/${profileId}`, config);
 
@@ -138,10 +138,10 @@ export const getAllLikes = (token: string, userId: number, profileId: number) =>
 }
 
 // Comment Actions
-export const createComment = (token: string, userId: number, profileId: number, commentText: string, postId: number, post_index: number) => {
+export const createComment = (userId: number, profileId: number, commentText: string, postId: number, post_index: number) => {
     return async (dispatch:Dispatch) => {
         try {
-            const config = getAxiosConfig(token);
+            const config = getAxiosConfig();
             const body = getAxiosBody({commentText})
 
             const res = await axios.post(`${API}/comments/${postId}/${userId}/${profileId}`, body, config);
@@ -153,10 +153,10 @@ export const createComment = (token: string, userId: number, profileId: number, 
     }
 }
 
-export const updateComment = (token: string, userId: number, profileId: number, comment: Comment, post_index: number) => {
+export const updateComment = (userId: number, profileId: number, comment: Comment, post_index: number) => {
     return async (dispatch:Dispatch) => {
         try {
-            const config = getAxiosConfig(token);
+            const config = getAxiosConfig();
             const body = getAxiosBody({commentText: comment.comment_text})
 
             await axios.put(`${API}/comments/${comment.id}/${userId}/${profileId}`, body, config);
@@ -168,10 +168,10 @@ export const updateComment = (token: string, userId: number, profileId: number, 
     }
 }
 
-export const removeComment = (token: string, userId: number, profileId: number, commentId: number, post_index: number) => {
+export const removeComment = (userId: number, profileId: number, commentId: number, post_index: number) => {
     return async (dispatch:Dispatch) => {
         try {
-            const config = getAxiosConfig(token, false);
+            const config = getAxiosConfig(false);
 
             await axios.delete(`${API}/comments/${commentId}/${userId}/${profileId}`, config);
 
@@ -182,12 +182,12 @@ export const removeComment = (token: string, userId: number, profileId: number, 
     }
 }
 
-export const likeComment = (token: string, userId: number, profileId: number, commentId: number, post_index: number) => {
+export const likeComment = (userId: number, profileId: number, commentId: number, post_index: number) => {
     return async (dispatch:Dispatch) => {
         try {
             dispatch({type: LIKE_BUTTON_CLICKED});
 
-            const config = getAxiosConfig(token, false);
+            const config = getAxiosConfig(false);
 
             await axios.put(`${API}/comments/${commentId}/like/${userId}/${profileId}`, null,  config);
 
@@ -200,12 +200,12 @@ export const likeComment = (token: string, userId: number, profileId: number, co
     }
 }
 
-export const unlikeComment = (token: string, userId: number, profileId: number, commentId: number, post_index: number) => {
+export const unlikeComment = (userId: number, profileId: number, commentId: number, post_index: number) => {
     return async (dispatch:Dispatch) => {
         try {
             dispatch({type: LIKE_BUTTON_CLICKED});
 
-            const config = getAxiosConfig(token, false);
+            const config = getAxiosConfig(false);
 
             await axios.put(`${API}/comments/${commentId}/unlike/${userId}/${profileId}`, null,  config);
 
@@ -220,10 +220,10 @@ export const unlikeComment = (token: string, userId: number, profileId: number, 
 
 // Answer Actions
 export const createAnswer = 
-(token: string, userId: number, profileId: number, answerText: string, commentId: number, post_index: number, comment_index: number) => {
+(userId: number, profileId: number, answerText: string, commentId: number, post_index: number, comment_index: number) => {
     return async (dispatch:Dispatch) => {
         try {
-            const config = getAxiosConfig(token);
+            const config = getAxiosConfig();
             const body = getAxiosBody({answerText})
 
             const res = await axios.post(`${API}/answers/${commentId}/${userId}/${profileId}`, body, config);
@@ -236,10 +236,10 @@ export const createAnswer =
 }
 
 export const updateAnswer = 
-(token: string, userId: number, profileId: number, answer: Answer, post_index: number, comment_index: number) => {
+(userId: number, profileId: number, answer: Answer, post_index: number, comment_index: number) => {
     return async (dispatch:Dispatch) => {
         try {
-            const config = getAxiosConfig(token);
+            const config = getAxiosConfig();
             const body = getAxiosBody({answerText: answer.answer_text})
 
             await axios.put(`${API}/answers/${answer.id}/${userId}/${profileId}`, body, config);
@@ -252,10 +252,10 @@ export const updateAnswer =
 }
 
 export const removeAnswer = 
-(token: string, userId: number, profileId: number, answerId: number, post_index: number, comment_index: number) => {
+(userId: number, profileId: number, answerId: number, post_index: number, comment_index: number) => {
     return async (dispatch:Dispatch) => {
         try {
-            const config = getAxiosConfig(token, false);
+            const config = getAxiosConfig(false);
 
             await axios.delete(`${API}/answers/${answerId}/${userId}/${profileId}`, config);
 
@@ -267,12 +267,12 @@ export const removeAnswer =
 }
 
 export const likeAnswer = 
-(token: string, userId: number, profileId: number, answerId: number, post_index: number, comment_index: number) => {
+(userId: number, profileId: number, answerId: number, post_index: number, comment_index: number) => {
     return async (dispatch:Dispatch) => {
         try {
             dispatch({type: LIKE_BUTTON_CLICKED});
 
-            const config = getAxiosConfig(token, false);
+            const config = getAxiosConfig(false);
 
             await axios.put(`${API}/answers/${answerId}/like/${userId}/${profileId}`, null,  config);
 
@@ -286,12 +286,12 @@ export const likeAnswer =
 }
 
 export const unlikeAnswer = 
-(token: string, userId: number, profileId: number, answerId: number, post_index: number, comment_index: number) => {
+(userId: number, profileId: number, answerId: number, post_index: number, comment_index: number) => {
     return async (dispatch:Dispatch) => {
         try {
             dispatch({type: LIKE_BUTTON_CLICKED});
 
-            const config = getAxiosConfig(token, false);
+            const config = getAxiosConfig(false);
 
             await axios.put(`${API}/answers/${answerId}/unlike/${userId}/${profileId}`, null,  config);
 

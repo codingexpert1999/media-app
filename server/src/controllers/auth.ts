@@ -1,10 +1,10 @@
 import {MysqlError} from 'mysql';
 import {hash, genSalt, compare} from 'bcrypt';
-import {sign, verify} from 'jsonwebtoken';
 import {config} from 'dotenv'
 import {Request, Response} from 'express';
 import {validationResult} from 'express-validator';
 import db from '../config/db';
+import {createToken, verifyToken, JwtErrorType} from '../util/auth'
 
 config()
 
@@ -38,27 +38,30 @@ export const signup = (req: Request, res: Response) => {
             db.query(query, (err:MysqlError) => {
                 if(err) throw err;
 
-                
-
                 query = `SELECT * FROM users WHERE username=${username} AND email=${email}`;
 
-                db.query(query, (err: MysqlError, result) => {
+                db.query(query, async (err: MysqlError, result) => {
                     if(err) throw err;
 
                     let user = result[0];
+                    user.password = undefined;
 
                     let payload = {
                         username, email, id: user.id
                     }
 
-                    sign(payload, jwtSecret, {expiresIn: 86400000}, (err, token) => {
-                        if(err) throw err;
-    
-                        res.json({
-                            user: payload,
-                            token
-                        })
-                    })
+                    const accessToken = await createToken(payload, jwtSecret, "2h");
+                    const refreshToken = await createToken(payload, jwtSecret, "7d");
+
+                    if(accessToken.token && refreshToken.token){
+                        req.session.accessToken = accessToken.token;
+                        req.session.user = user;
+                        res.cookie("token", refreshToken.token, {maxAge: 1000 * 60 * 60 * 24 * 7, httpOnly: true, secure: false})
+
+                        res.json({user: payload})
+                    }else{
+                        res.json({error: "Something went wrong!"})
+                    }
                 })
             })
         })
@@ -68,7 +71,6 @@ export const signup = (req: Request, res: Response) => {
         res.status(500).json({error: err.message})
     }
 }
-
 
 export const login = (req: Request, res: Response) => {
     try {
@@ -97,20 +99,79 @@ export const login = (req: Request, res: Response) => {
                 return res.status(404).json({error: "Email or password is incorrect!"})
             }
 
+            user.password = undefined;
+
             let payload = {
                 username: user.username, email: user.email, id: user.id
             }
 
-            sign(payload, jwtSecret, {expiresIn: 86400000}, (err, token) => {
-                if(err) throw err;
+            const accessToken = await createToken(payload, jwtSecret, "2h");
+            const refreshToken = await createToken(payload, jwtSecret, "7d");
 
-                res.json({
-                    user: payload,
-                    token
-                })
-            })
+            if(accessToken.token && refreshToken.token){
+                req.session.accessToken = accessToken.token;
+                req.session.user = user;
+                res.cookie("token", refreshToken.token, {maxAge: 1000 * 60 * 60 * 24 * 7, httpOnly: true, secure: false})
+
+                req.session.save((err) => {
+                    if(err) throw err;
+
+                    res.json({user: payload});
+                });
+            }else{
+                res.json({error: "Something went wrong!"})
+            }
         })
-        
+    } catch (err) {
+        console.log(err)
+        res.status(500).json({error: err.message})
+    }
+}
+
+export const verifyUser = async (req: Request, res: Response) => {
+    try {
+        if(req.session.accessToken){
+            return res.json({success: true});
+        }
+
+        let token = req.cookies.token;
+
+        const verification = await verifyToken(token, jwtSecret);
+
+        if(verification.error === JwtErrorType.INVALID){
+            return res.status(401).json({error: "User not authorized."});
+        }else if(verification.error === JwtErrorType.EXPIRED){
+            const payload = {id: req.user.id, email: req.user.email, username: req.user.username}
+
+            const accessToken = await createToken(payload, jwtSecret, "2h");
+            const refreshToken = await createToken(payload, jwtSecret, "7d");
+
+            if(accessToken.token && refreshToken.token){
+                req.session.accessToken = accessToken.token;
+                res.cookie("token", refreshToken.token, {maxAge: 1000 * 60 * 60 * 24 * 7, httpOnly: true, secure: false})
+
+                res.json({success: true})
+            }else{
+                res.json({success: false})
+            }
+        }else{
+            if(!req.session.accessToken){
+                const payload = {id: req.user.id, email: req.user.email, username: req.user.username}
+
+                const accessToken = await createToken(payload, jwtSecret, "2h");
+                const refreshToken = await createToken(payload, jwtSecret, "7d");
+
+                if(accessToken.token && refreshToken.token){
+                    req.session.accessToken = accessToken.token;
+                    res.cookie("token", refreshToken.token, {maxAge: 1000 * 60 * 60 * 24 * 7, httpOnly: true, secure: false})
+    
+                    res.json({success: true})
+                }else{
+                    res.json({success: false})
+                }
+            }
+        }
+
     } catch (err) {
         console.log(err)
         res.status(500).json({error: err.message})

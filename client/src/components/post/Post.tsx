@@ -10,7 +10,7 @@ import { openModal, setIdToUseInModal, setPostIndex } from '../../actions/layout
 const Post = (props: {post: PostObj, post_index: number}) => {
     const dispatch = useDispatch();
 
-    const {user, token} = useSelector((state: State) => state.user)
+    const {user} = useSelector((state: State) => state.user)
     const {profile} = useSelector((state: State) => state.profile)
     const {postsLiked, canClickLikeButton} = useSelector((state: State) => state.post)
     const {modalType} = useSelector((state: State) => state.layout)
@@ -31,7 +31,7 @@ const Post = (props: {post: PostObj, post_index: number}) => {
         let post = {...props.post};
         post.post_text = postText;
 
-        dispatch(updatePost(token, user.id, profile.id, post));
+        dispatch(updatePost(user.id, profile.id, post));
 
         setEdit(false);
     }
@@ -49,7 +49,7 @@ const Post = (props: {post: PostObj, post_index: number}) => {
                     setShowOptions(false);
                 }}>Edit <i className="fas fa-edit"></i></li>
                 <li onClick={() => {
-                        dispatch(removePost(token, user.id, profile.id, props.post.id))
+                        dispatch(removePost(user.id, profile.id, props.post.id))
                         setShowOptions(false);
                     }
                 }>Delete <i className="fas fa-trash-alt"></i></li>
@@ -96,10 +96,10 @@ const Post = (props: {post: PostObj, post_index: number}) => {
                                 }
 
                                 if(!isLiked){
-                                    dispatch(likePost(token, user.id, profile.id, props.post.id));
+                                    dispatch(likePost(user.id, profile.id, props.post.id));
                                     setIsLiked(true);
                                 }else{
-                                    dispatch(unlikePost(token, user.id, profile.id, props.post.id));
+                                    dispatch(unlikePost(user.id, profile.id, props.post.id));
                                     setIsLiked(false);
                                 }
                             }}

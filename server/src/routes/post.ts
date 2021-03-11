@@ -1,22 +1,22 @@
 import {Router} from 'express';
 import { fetch, create, update, remove, like, unlike, getAllLikes } from '../controllers/post';
-import {loginRequired, isAuthenticated, userById, profileById} from '../middlewares/user'
+import {isAuthorized, userById, profileById} from '../middlewares/user'
 import {postById} from '../middlewares/post'
 
 const router = Router();
 
-router.get("/posts/:userId/:profileId", loginRequired, isAuthenticated, fetch);
+router.get("/posts/:userId/:profileId", isAuthorized, fetch);
 
-router.post("/posts/:userId/:profileId", loginRequired, isAuthenticated, create);
+router.post("/posts/:userId/:profileId", isAuthorized, create);
 
-router.put("/posts/:postId/:userId/:profileId", loginRequired, isAuthenticated, update);
+router.put("/posts/:postId/:userId/:profileId", isAuthorized, update);
 
-router.delete("/posts/:postId/:userId/:profileId", loginRequired, isAuthenticated, remove);
+router.delete("/posts/:postId/:userId/:profileId", isAuthorized, remove);
 
-router.put("/posts/:postId/like/:userId/:profileId", loginRequired, isAuthenticated, like);
-router.put("/posts/:postId/unlike/:userId/:profileId", loginRequired, isAuthenticated, unlike);
+router.put("/posts/:postId/like/:userId/:profileId", isAuthorized, like);
+router.put("/posts/:postId/unlike/:userId/:profileId", isAuthorized, unlike);
 
-router.get("/posts/get_all_likes/:userId/:profileId", loginRequired, isAuthenticated, getAllLikes);
+router.get("/posts/get_all_likes/:userId/:profileId", isAuthorized, getAllLikes);
 
 router.param("userId", userById);
 router.param("profileId", profileById);

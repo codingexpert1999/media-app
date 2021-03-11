@@ -11,10 +11,10 @@ import {
     ACCEPT_FRIEND_REQUEST 
 } from '../actionTypes/profileActionTypes';
 
-export const getProfile = (token: string, userId: number) => {
+export const getProfile = (userId: number) => {
     return async (dispatch: Dispatch) => {
         try {
-            const config = getAxiosConfig(token);
+            const config = getAxiosConfig(false);
 
             const res = await axios.get(`${API}/profile/${userId}`, config);
 
@@ -25,10 +25,10 @@ export const getProfile = (token: string, userId: number) => {
     }
 }
 
-export const getNotifications = (token: string, userId: number, profileId: number) => {
+export const getNotifications = (userId: number, profileId: number) => {
     return async (dispatch: Dispatch) => {
         try {
-            const config = getAxiosConfig(token);
+            const config = getAxiosConfig(false);
 
             const res = await axios.get(`${API}/profile/notifications/${userId}/${profileId}`, config);
 
@@ -39,10 +39,10 @@ export const getNotifications = (token: string, userId: number, profileId: numbe
     }
 }
 
-export const getFriendRequests = (token: string, userId: number, profileId: number) => {
+export const getFriendRequests = (userId: number, profileId: number) => {
     return async (dispatch: Dispatch) => {
         try {
-            const config = getAxiosConfig(token);
+            const config = getAxiosConfig(false);
 
             const res = await axios.get(`${API}/profile/friend_requests/${userId}/${profileId}`, config);
 
@@ -53,10 +53,10 @@ export const getFriendRequests = (token: string, userId: number, profileId: numb
     }
 }
 
-export const getFriends = (token: string, userId: number, profileId: number) => {
+export const getFriends = (userId: number, profileId: number) => {
     return async (dispatch: Dispatch) => {
         try {
-            const config = getAxiosConfig(token);
+            const config = getAxiosConfig(false);
 
             const res = await axios.get(`${API}/profile/friends/${userId}/${profileId}`, config);
 
@@ -67,10 +67,10 @@ export const getFriends = (token: string, userId: number, profileId: number) => 
     }
 }
 
-export const sendFriendRequest = (token: string, userId: number, profileId: number, receiverProfileId: number) => {
+export const sendFriendRequest = (userId: number, profileId: number, receiverProfileId: number) => {
     return async (dispatch:Dispatch) => {
         try {
-            const config = getAxiosConfig(token);
+            const config = getAxiosConfig();
             const body = getAxiosBody({receiverProfileId});
 
             await axios.post(`${API}/profile/send_friend_request/${userId}/${profileId}`, body, config);
@@ -82,10 +82,10 @@ export const sendFriendRequest = (token: string, userId: number, profileId: numb
     }
 }
 
-export const acceptFriendRequest = (token: string, userId: number, profileId: number, senderProfileId: number) => {
+export const acceptFriendRequest = (userId: number, profileId: number, senderProfileId: number) => {
     return async (dispatch:Dispatch) => {
         try {
-            const config = getAxiosConfig(token);
+            const config = getAxiosConfig();
             const body = getAxiosBody({senderProfileId});
 
             await axios.post(`${API}/profile/accept_friend_request/${userId}/${profileId}`, body, config);

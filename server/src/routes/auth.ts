@@ -1,6 +1,7 @@
 import {Router} from 'express';
-import {login, signup} from '../controllers/auth';
+import {login, signup, verifyUser} from '../controllers/auth';
 import {check} from 'express-validator';
+import { userById } from '../middlewares/user';
 
 const router = Router();
 
@@ -16,5 +17,9 @@ router.post("/signup", [
     check("email", "Please enter a valid email").isEmail(),
     check("password", "Password is required").notEmpty()
 ], signup);
+
+router.get("/verify_user/:userId", verifyUser);
+
+router.param("userId", userById);
 
 export default router;

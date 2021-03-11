@@ -8,7 +8,7 @@ import { likeAnswer, removeAnswer, unlikeAnswer, updateAnswer } from '../../../a
 const Answer = (props: {answer: AnswerObj, post_index: number, comment_index: number}) => {
     const dispatch = useDispatch();
 
-    const {user, token} = useSelector((state: State) => state.user)
+    const {user} = useSelector((state: State) => state.user)
     const {profile} = useSelector((state: State) => state.profile)
     const {answersLiked, canClickLikeButton} = useSelector((state: State) => state.post)
 
@@ -27,7 +27,7 @@ const Answer = (props: {answer: AnswerObj, post_index: number, comment_index: nu
         let answer = {...props.answer};
         answer.answer_text = answerText;
 
-        dispatch(updateAnswer(token, user.id, profile.id, answer, props.post_index, props.comment_index));
+        dispatch(updateAnswer(user.id, profile.id, answer, props.post_index, props.comment_index));
 
         setEdit(false);
     }
@@ -44,7 +44,7 @@ const Answer = (props: {answer: AnswerObj, post_index: number, comment_index: nu
                     setShowOptions(false);
                 }}>Edit <i className="fas fa-edit"></i></li>
                 <li onClick={() => {
-                        dispatch(removeAnswer(token, user.id, profile.id, props.answer.id, props.post_index, props.comment_index))
+                        dispatch(removeAnswer(user.id, profile.id, props.answer.id, props.post_index, props.comment_index))
                         setShowOptions(false);
                     }
                 }>Delete <i className="fas fa-trash-alt"></i></li>
@@ -90,10 +90,10 @@ const Answer = (props: {answer: AnswerObj, post_index: number, comment_index: nu
                             }
 
                             if(!isLiked){
-                                dispatch(likeAnswer(token, user.id, profile.id, props.answer.id, props.post_index, props.comment_index));
+                                dispatch(likeAnswer(user.id, profile.id, props.answer.id, props.post_index, props.comment_index));
                                 setIsLiked(true);
                             }else{
-                                dispatch(unlikeAnswer(token, user.id, profile.id, props.answer.id, props.post_index, props.comment_index));
+                                dispatch(unlikeAnswer(user.id, profile.id, props.answer.id, props.post_index, props.comment_index));
                                 setIsLiked(false);
                             }
                         }}

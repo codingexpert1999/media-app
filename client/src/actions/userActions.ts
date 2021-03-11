@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { LOAD_USER, LOGIN, REGISTER_USER } from '../actionTypes/userActionTypes';
+import { LOGIN, REGISTER_USER, VERIFY_USER } from '../actionTypes/userActionTypes';
 import { API, getAxiosBody, getAxiosConfig } from '../helper';
 import {Dispatch} from 'redux'
 import { FORM_ERROR_OCCURED } from '../actionTypes/layoutActionTypes';
@@ -34,10 +34,18 @@ export const login = (formValues: Object) => {
     }
 }
 
-export const loadUser = () => {
-    if(localStorage.getItem("token")){
-        return {
-            type: LOAD_USER
+export const verifyUser = (userId: number) => {
+    if(localStorage.getItem("user")){
+        return async (dispatch: Dispatch) => {
+            const config = getAxiosConfig(false);
+
+            const res = await axios.get(`${API}/verify_user/${userId}`, config);
+
+            if(res.data.success){
+                dispatch({type: VERIFY_USER})
+            }else{
+                dispatch({type: "CANNOT_LOAD_USER"})
+            }
         }
     }else{
         return {

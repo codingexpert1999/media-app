@@ -11,22 +11,23 @@ import CreateComment from '../modals/CreateComment'
 import CreateAnswer from '../modals/CreateAnswer'
 
 const Dashboard = () => {
-    const {token, user} = useSelector((state:State) => state.user) 
+    const {user} = useSelector((state:State) => state.user) 
     const {profile} = useSelector((state:State) => state.profile)
     const {showModal, modalType} = useSelector((state:State) => state.layout) 
     const dispatch = useDispatch();
 
+
     useEffect(() => {
-        dispatch(getProfile(token, user.id));
+        dispatch(getProfile(user.id));
     }, [])
 
     useEffect(() => {
         if(profile.id !== 0){
-            dispatch(getAllLikes(token, user.id, profile.id));
-            dispatch(fetchPosts(token, user.id, profile.id));
-            dispatch(getFriends(token, user.id, profile.id));
-            dispatch(getFriendRequests(token, user.id, profile.id));
-            dispatch(getNotifications(token, user.id, profile.id));
+            dispatch(getAllLikes(user.id, profile.id));
+            dispatch(fetchPosts(user.id, profile.id));
+            dispatch(getFriends(user.id, profile.id));
+            dispatch(getFriendRequests(user.id, profile.id));
+            dispatch(getNotifications(user.id, profile.id));
         }
     }, [profile, dispatch])
 

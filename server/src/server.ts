@@ -3,19 +3,29 @@ import {Answer, Post, User, UserPayload, Comment, Profile} from './interfaces'
 declare global {
     namespace Express {
         interface Request {
-            user:User;
-            auth: UserPayload;
+            user: User;
             post: Post;
             comment: Comment;
             answer: Answer;
             profile: Profile;
+            authToken: string;
         }
     }
 }
 
-import express from 'express';
+declare module 'express-session' {
+    interface SessionData {
+      user: User;
+      profile: Profile;
+      accessToken: string;
+    }
+}
+
+import express, { NextFunction, Request, Response } from 'express';
 import {config} from 'dotenv'
-import cors from 'cors';
+
+import connectRedis from 'connect-redis';
+import session from 'express-session'
 
 import db from './config/db';
 
@@ -24,6 +34,9 @@ import postRoutes from './routes/post'
 import commentRoutes from './routes/comment'
 import answerRoutes from './routes/answer'
 import profileRoutes from './routes/profile'
+import redisClient from './config/redis';
+import cors from 'cors';
+import cookieParser from 'cookie-parser';
 
 config();
 
@@ -39,9 +52,30 @@ db.connect((err) => {
     console.log("Connected to database...")
 })
 
-app.use(cors())
+// app.set('trust proxy', 1);
+
+app.use(cors({credentials: true}))
 app.use(express.json())
 app.use(express.urlencoded({extended: true}))
+
+const redisStore = connectRedis(session);
+const SESSION_SECRET = process.env.SESSION_SECRET || "secret";
+
+app.use(cookieParser(SESSION_SECRET))
+app.use(session({
+    secret: SESSION_SECRET,
+    saveUninitialized: false,
+    resave: false,
+    name: "session_id",
+    store: new redisStore({client: redisClient}),
+    cookie: {
+        secure: false,
+        httpOnly: true,
+        maxAge: 1000 * 60 * 60 * 2,
+        domain: 'localhost',
+        path: "/"
+    }
+}))
 
 // Routes
 app.use("/api", authRoutes);

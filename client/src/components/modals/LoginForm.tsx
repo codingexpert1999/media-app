@@ -10,8 +10,8 @@ const LoginForm = () => {
     const {formErrors, formSubmitted} = useSelector((state: State) => state.layout);
 
     const [formValues, setFormValues] = useState({
-        email: "",
-        password: "",
+        email: "mike12@gmail.com",
+        password: "123456",
     });
 
     const [validInputs, setValidInputs] = useState({

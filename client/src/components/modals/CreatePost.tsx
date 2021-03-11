@@ -7,7 +7,7 @@ import { State } from '../../interfaces';
 const CreatePost = () => {
     const [postText, setPostText] = useState("");
 
-    const {user, token} = useSelector((state: State) => state.user)
+    const {user} = useSelector((state: State) => state.user)
     const {profile} = useSelector((state: State) => state.profile)
 
     const dispatch = useDispatch();
@@ -15,7 +15,7 @@ const CreatePost = () => {
     const onSubmit = (e:React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
-        dispatch(createPost(token, user.id, profile.id, postText, "", ""))
+        dispatch(createPost(user.id, profile.id, postText, "", ""))
 
         dispatch(closeModal())
     }

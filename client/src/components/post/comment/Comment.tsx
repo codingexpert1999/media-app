@@ -10,7 +10,7 @@ import { openModal, setCommentIndex, setIdToUseInModal, setPostIndex } from '../
 const Comment = (props: {comment: CommentObj, post_index: number, comment_index: number}) => {
     const dispatch = useDispatch();
 
-    const {user, token} = useSelector((state: State) => state.user)
+    const {user} = useSelector((state: State) => state.user)
     const {profile} = useSelector((state: State) => state.profile)
     const {commentsLiked, canClickLikeButton} = useSelector((state: State) => state.post)
     const {modalType} = useSelector((state: State) => state.layout)
@@ -31,7 +31,7 @@ const Comment = (props: {comment: CommentObj, post_index: number, comment_index:
         let comment = {...props.comment};
         comment.comment_text = commentText;
 
-        dispatch(updateComment(token, user.id, profile.id, comment, props.post_index));
+        dispatch(updateComment(user.id, profile.id, comment, props.post_index));
 
         setEdit(false);
     }
@@ -48,7 +48,7 @@ const Comment = (props: {comment: CommentObj, post_index: number, comment_index:
                     setShowOptions(false);
                 }}>Edit <i className="fas fa-edit"></i></li>
                 <li onClick={() => {
-                        dispatch(removeComment(token, user.id, profile.id, props.comment.id, props.post_index))
+                        dispatch(removeComment(user.id, profile.id, props.comment.id, props.post_index))
                         setShowOptions(false);
                     }
                 }>Delete <i className="fas fa-trash-alt"></i></li>
@@ -94,10 +94,10 @@ const Comment = (props: {comment: CommentObj, post_index: number, comment_index:
                             }
 
                             if(!isLiked){
-                                dispatch(likeComment(token, user.id, profile.id, props.comment.id, props.post_index));
+                                dispatch(likeComment(user.id, profile.id, props.comment.id, props.post_index));
                                 setIsLiked(true);
                             }else{
-                                dispatch(unlikeComment(token, user.id, profile.id, props.comment.id, props.post_index));
+                                dispatch(unlikeComment(user.id, profile.id, props.comment.id, props.post_index));
                                 setIsLiked(false);
                             }
                         }}

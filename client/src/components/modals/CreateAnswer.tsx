@@ -7,7 +7,7 @@ import { State } from '../../interfaces';
 const CreateAnswer = () => {
     const [answerText, setAnswerText] = useState("");
 
-    const {user, token} = useSelector((state: State) => state.user)
+    const {user} = useSelector((state: State) => state.user)
     const {profile} = useSelector((state: State) => state.profile)
     const {idToUseInModal, postIndex, commentIndex} = useSelector((state: State) => state.layout)
 
@@ -16,7 +16,7 @@ const CreateAnswer = () => {
     const onSubmit = (e:React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
-        dispatch(createAnswer(token, user.id, profile.id, answerText, idToUseInModal, postIndex, commentIndex))
+        dispatch(createAnswer(user.id, profile.id, answerText, idToUseInModal, postIndex, commentIndex))
 
         dispatch(closeModal())
     }
