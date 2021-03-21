@@ -62,7 +62,7 @@ app.use(express.json())
 app.use(express.urlencoded({extended: true}))
 app.use(contentSecurityPolicy({
     directives: {
-        defaultSrc: ["'self'", "localhost"],
+        defaultSrc: ["'self'"],
         scriptSrc: ["'self'"],
         styleSrc: ["'self'", fontawesome, bootstrap]
     }
