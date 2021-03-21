@@ -3,7 +3,6 @@ import db from '../config/db';
 import {MysqlError} from 'mysql'
 import {config} from 'dotenv'
 import { verifyToken, JwtErrorType, createToken } from '../util/auth';
-import { log } from 'console';
 
 config();
 
