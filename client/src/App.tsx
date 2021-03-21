@@ -6,7 +6,6 @@ import Routes from './components/routes/Routes';
 import {ToastContainer} from 'react-toastify'
 import { State } from './interfaces';
 
-
 function App() {
   const dispatch = useDispatch();
   const {user} = useSelector((state: State) => state.user)

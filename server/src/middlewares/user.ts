@@ -3,13 +3,18 @@ import db from '../config/db';
 import {MysqlError} from 'mysql'
 import {config} from 'dotenv'
 import { verifyToken, JwtErrorType, createToken } from '../util/auth';
+import { log } from 'console';
 
 config();
 
 const jwtSecret = process.env.JWT_SECRET || "";
 
-export const userById = (req: Request, res: Response, next: NextFunction, id: number) => {
+export const userById = (req: Request, res: Response, next: NextFunction, id: string) => {
     try {
+        if(id.length !== (parseInt(id) + "").length){
+            return res.status(400).json({error: "Bad request!"})
+        }
+
         if(req.session.user){
             req.user = req.session.user;
             next();
@@ -22,7 +27,7 @@ export const userById = (req: Request, res: Response, next: NextFunction, id: nu
                 if (result.length === 0) {
                     return res.status(404).json({ error: "User does not exist" });
                 }
-    
+
                 req.user = result[0];
     
                 req.user.password = undefined;
@@ -41,8 +46,12 @@ export const userById = (req: Request, res: Response, next: NextFunction, id: nu
     }
 }
 
-export const profileById = (req: Request, res: Response, next: NextFunction, id: number) => {
+export const profileById = (req: Request, res: Response, next: NextFunction, id: string) => {
     try {
+        if(id.length !== (parseInt(id) + "").length){
+            return res.status(400).json({error: "Bad request!"})
+        }
+        
         if(req.session.profile){
             req.profile = req.session.profile;
             next();

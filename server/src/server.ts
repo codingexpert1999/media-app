@@ -1,4 +1,4 @@
-import {Answer, Post, User, UserPayload, Comment, Profile} from './interfaces'
+import {Answer, Post, User, Comment, Profile} from './interfaces'
 
 declare global {
     namespace Express {
@@ -37,6 +37,7 @@ import profileRoutes from './routes/profile'
 import redisClient from './config/redis';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
+import {contentSecurityPolicy} from 'helmet'
 
 config();
 
@@ -55,8 +56,17 @@ db.connect((err) => {
 // app.set('trust proxy', 1);
 
 app.use(cors({credentials: true}))
+const fontawesome = "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css"
+const bootstrap = "https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css";
 app.use(express.json())
 app.use(express.urlencoded({extended: true}))
+app.use(contentSecurityPolicy({
+    directives: {
+        defaultSrc: ["'self'", "localhost"],
+        scriptSrc: ["'self'"],
+        styleSrc: ["'self'", fontawesome, bootstrap]
+    }
+}))
 
 const redisStore = connectRedis(session);
 const SESSION_SECRET = process.env.SESSION_SECRET || "secret";
