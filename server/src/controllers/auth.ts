@@ -56,7 +56,7 @@ export const signup = (req: Request, res: Response) => {
                     if(accessToken.token && refreshToken.token){
                         req.session.accessToken = accessToken.token;
                         req.session.user = user;
-                        res.cookie("token", refreshToken.token, {maxAge: 1000 * 60 * 60 * 24 * 7, httpOnly: true, secure: false})
+                        res.cookie("token", refreshToken.token, {maxAge: 1000 * 60 * 60 * 24 * 7, httpOnly: true, secure: false, sameSite: "strict"})
 
                         res.json({user: payload})
                     }else{
@@ -111,7 +111,7 @@ export const login = (req: Request, res: Response) => {
             if(accessToken.token && refreshToken.token){
                 req.session.accessToken = accessToken.token;
                 req.session.user = user;
-                res.cookie("token", refreshToken.token, {maxAge: 1000 * 60 * 60 * 24 * 7, httpOnly: true, secure: false})
+                res.cookie("token", refreshToken.token, {maxAge: 1000 * 60 * 60 * 24 * 7, httpOnly: true, secure: false, sameSite: "strict"})
 
                 req.session.save((err) => {
                     if(err) throw err;
@@ -148,7 +148,7 @@ export const verifyUser = async (req: Request, res: Response) => {
 
             if(accessToken.token && refreshToken.token){
                 req.session.accessToken = accessToken.token;
-                res.cookie("token", refreshToken.token, {maxAge: 1000 * 60 * 60 * 24 * 7, httpOnly: true, secure: false})
+                res.cookie("token", refreshToken.token, {maxAge: 1000 * 60 * 60 * 24 * 7, httpOnly: true, secure: false, sameSite: "strict"})
 
                 res.json({success: true})
             }else{
@@ -163,7 +163,7 @@ export const verifyUser = async (req: Request, res: Response) => {
 
                 if(accessToken.token && refreshToken.token){
                     req.session.accessToken = accessToken.token;
-                    res.cookie("token", refreshToken.token, {maxAge: 1000 * 60 * 60 * 24 * 7, httpOnly: true, secure: false})
+                    res.cookie("token", refreshToken.token, {maxAge: 1000 * 60 * 60 * 24 * 7, httpOnly: true, secure: false, sameSite: "strict"})
     
                     res.json({success: true})
                 }else{

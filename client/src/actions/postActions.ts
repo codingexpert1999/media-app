@@ -34,7 +34,7 @@ export const fetchPosts = (userId: number, profileId: number) => {
 
             const config = getAxiosConfig(false);
 
-            const res = await axios.get(`${API}/posts/${userId}/${profileId}`, config);
+            const res = await axios.get(`${API}/posts/${userId}/${profileId}`, {...config, withCredentials: true});
 
             dispatch({type: FETCH_POSTS, payload: {posts: res.data}})
         } catch (err) {
@@ -49,7 +49,7 @@ export const createPost = (userId: number, profileId: number, postText: string, 
             const config = getAxiosConfig();
             const body = getAxiosBody({postText, postImage, postVideo})
 
-            const res = await axios.post(`${API}/posts/${userId}/${profileId}`, body, config);
+            const res = await axios.post(`${API}/posts/${userId}/${profileId}`, body, {...config, withCredentials: true});
 
             dispatch({type: CREATE_POST, payload: {post: res.data}})
         } catch (err) {
@@ -64,7 +64,7 @@ export const updatePost = (userId: number, profileId: number, post: Post) => {
             const config = getAxiosConfig();
             const body = getAxiosBody({postText: post.post_text, postImage: post.post_image, postVideo: post.post_video})
 
-            await axios.put(`${API}/posts/${post.id}/${userId}/${profileId}`, body, config);
+            await axios.put(`${API}/posts/${post.id}/${userId}/${profileId}`, body, {...config, withCredentials: true});
 
             dispatch({type: UPDATE_POST, payload: {post}})
         } catch (err) {
@@ -78,7 +78,7 @@ export const removePost = (userId: number, profileId: number, postId: number) =>
         try {
             const config = getAxiosConfig(false);
 
-            await axios.delete(`${API}/posts/${postId}/${userId}/${profileId}`, config);
+            await axios.delete(`${API}/posts/${postId}/${userId}/${profileId}`, {...config, withCredentials: true});
 
             dispatch({type: REMOVE_POST, payload: {id: postId}})
         } catch (err) {
@@ -94,7 +94,7 @@ export const likePost = (userId: number, profileId: number, postId: number) => {
 
             const config = getAxiosConfig(false);
 
-            await axios.put(`${API}/posts/${postId}/like/${userId}/${profileId}`, null,  config);
+            await axios.put(`${API}/posts/${postId}/like/${userId}/${profileId}`, null,  {...config, withCredentials: true});
 
             dispatch({type: LIKE_POST, payload: {id: postId}})
         } catch (err) {
@@ -112,7 +112,7 @@ export const unlikePost = (userId: number, profileId: number, postId: number) =>
 
             const config = getAxiosConfig(false);
 
-            await axios.put(`${API}/posts/${postId}/unlike/${userId}/${profileId}`, null,  config);
+            await axios.put(`${API}/posts/${postId}/unlike/${userId}/${profileId}`, null,  {...config, withCredentials: true});
 
             dispatch({type: UNLIKE_POST, payload: {id: postId}})
         } catch (err) {
@@ -128,7 +128,7 @@ export const getAllLikes = (userId: number, profileId: number) => {
         try {
             const config = getAxiosConfig(false);
 
-            const res = await axios.get(`${API}/posts/get_all_likes/${userId}/${profileId}`, config);
+            const res = await axios.get(`${API}/posts/get_all_likes/${userId}/${profileId}`, {...config, withCredentials: true});
 
             dispatch({type: GET_ALL_LIKES, payload: res.data})
         } catch (err) {
@@ -144,7 +144,7 @@ export const createComment = (userId: number, profileId: number, commentText: st
             const config = getAxiosConfig();
             const body = getAxiosBody({commentText})
 
-            const res = await axios.post(`${API}/comments/${postId}/${userId}/${profileId}`, body, config);
+            const res = await axios.post(`${API}/comments/${postId}/${userId}/${profileId}`, body, {...config, withCredentials: true});
 
             dispatch({type: CREATE_COMMENT, payload: {comment: res.data, post_index}})
         } catch (err) {
@@ -159,7 +159,7 @@ export const updateComment = (userId: number, profileId: number, comment: Commen
             const config = getAxiosConfig();
             const body = getAxiosBody({commentText: comment.comment_text})
 
-            await axios.put(`${API}/comments/${comment.id}/${userId}/${profileId}`, body, config);
+            await axios.put(`${API}/comments/${comment.id}/${userId}/${profileId}`, body, {...config, withCredentials: true});
 
             dispatch({type: UPDATE_COMMENT, payload: {comment, post_index}})
         } catch (err) {
@@ -173,7 +173,7 @@ export const removeComment = (userId: number, profileId: number, commentId: numb
         try {
             const config = getAxiosConfig(false);
 
-            await axios.delete(`${API}/comments/${commentId}/${userId}/${profileId}`, config);
+            await axios.delete(`${API}/comments/${commentId}/${userId}/${profileId}`, {...config, withCredentials: true});
 
             dispatch({type: REMOVE_COMMENT, payload: {id: commentId, post_index}})
         } catch (err) {
@@ -189,7 +189,7 @@ export const likeComment = (userId: number, profileId: number, commentId: number
 
             const config = getAxiosConfig(false);
 
-            await axios.put(`${API}/comments/${commentId}/like/${userId}/${profileId}`, null,  config);
+            await axios.put(`${API}/comments/${commentId}/like/${userId}/${profileId}`, null,  {...config, withCredentials: true});
 
             dispatch({type: LIKE_COMMENT, payload: {id: commentId, post_index}})
         } catch (err) {
@@ -207,7 +207,7 @@ export const unlikeComment = (userId: number, profileId: number, commentId: numb
 
             const config = getAxiosConfig(false);
 
-            await axios.put(`${API}/comments/${commentId}/unlike/${userId}/${profileId}`, null,  config);
+            await axios.put(`${API}/comments/${commentId}/unlike/${userId}/${profileId}`, null,  {...config, withCredentials: true});
 
             dispatch({type: UNLIKE_COMMENT, payload: {id: commentId, post_index}})
         } catch (err) {
@@ -226,7 +226,7 @@ export const createAnswer =
             const config = getAxiosConfig();
             const body = getAxiosBody({answerText})
 
-            const res = await axios.post(`${API}/answers/${commentId}/${userId}/${profileId}`, body, config);
+            const res = await axios.post(`${API}/answers/${commentId}/${userId}/${profileId}`, body, {...config, withCredentials: true});
 
             dispatch({type: CREATE_ANSWER, payload: {answer: res.data, post_index, comment_index}})
         } catch (err) {
@@ -242,7 +242,7 @@ export const updateAnswer =
             const config = getAxiosConfig();
             const body = getAxiosBody({answerText: answer.answer_text})
 
-            await axios.put(`${API}/answers/${answer.id}/${userId}/${profileId}`, body, config);
+            await axios.put(`${API}/answers/${answer.id}/${userId}/${profileId}`, body, {...config, withCredentials: true});
 
             dispatch({type: UPDATE_ANSWER, payload: {answer: answer, post_index, comment_index}})
         } catch (err) {
@@ -257,7 +257,7 @@ export const removeAnswer =
         try {
             const config = getAxiosConfig(false);
 
-            await axios.delete(`${API}/answers/${answerId}/${userId}/${profileId}`, config);
+            await axios.delete(`${API}/answers/${answerId}/${userId}/${profileId}`, {...config, withCredentials: true});
 
             dispatch({type: REMOVE_ANSWER, payload: {id: answerId, post_index, comment_index}})
         } catch (err) {
@@ -274,7 +274,7 @@ export const likeAnswer =
 
             const config = getAxiosConfig(false);
 
-            await axios.put(`${API}/answers/${answerId}/like/${userId}/${profileId}`, null,  config);
+            await axios.put(`${API}/answers/${answerId}/like/${userId}/${profileId}`, null,  {...config, withCredentials: true});
 
             dispatch({type: LIKE_ANSWER, payload: {id: answerId, post_index, comment_index}})
         } catch (err) {
@@ -293,7 +293,7 @@ export const unlikeAnswer =
 
             const config = getAxiosConfig(false);
 
-            await axios.put(`${API}/answers/${answerId}/unlike/${userId}/${profileId}`, null,  config);
+            await axios.put(`${API}/answers/${answerId}/unlike/${userId}/${profileId}`, null,  {...config, withCredentials: true});
 
             dispatch({type: UNLIKE_ANSWER, payload: {id: answerId, post_index, comment_index}})
         } catch (err) {

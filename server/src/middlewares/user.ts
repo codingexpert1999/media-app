@@ -105,7 +105,7 @@ export const isAuthorized = async (req: Request, res: Response, next: NextFuncti
 
             if(accessToken.token && refreshToken.token){
                 req.session.accessToken = accessToken.token;
-                res.cookie("token", refreshToken.token, {maxAge: 1000 * 60 * 60 * 24 * 7, httpOnly: true, secure: false})
+                res.cookie("token", refreshToken.token, {maxAge: 1000 * 60 * 60 * 24 * 7, httpOnly: true, secure: false, sameSite: "strict"})
 
                 next();
             }else{
@@ -122,7 +122,7 @@ export const isAuthorized = async (req: Request, res: Response, next: NextFuncti
 
                 if(accessToken.token && refreshToken.token){
                     req.session.accessToken = accessToken.token;
-                    res.cookie("token", refreshToken.token, {maxAge: 1000 * 60 * 60 * 24 * 7, httpOnly: true, secure: false})
+                    res.cookie("token", refreshToken.token, {maxAge: 1000 * 60 * 60 * 24 * 7, httpOnly: true, secure: false, sameSite: "strict"})
 
                     next();
                 }else{

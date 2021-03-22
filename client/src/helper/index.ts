@@ -7,14 +7,11 @@ export const getAxiosConfig = (isSendingData=true) => {
     return isSendingData ? {
         headers: {
             'Content-Type': "application/json",
-            withCredentials: true
         }
     } 
         :
     {
-        headers: {
-            withCredentials: true
-        }
+        headers: {}
     }
 }
 

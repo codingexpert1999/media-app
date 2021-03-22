@@ -10,7 +10,7 @@ export const registerUser = (formValues: Object) => {
             const config = getAxiosConfig();
             const body = getAxiosBody(formValues);
     
-            const res = await axios.post(`${API}/signup`, body, config);
+            const res = await axios.post(`${API}/signup`, body, {...config, withCredentials: true});
             
             dispatch({type: REGISTER_USER, payload: res.data});
         } catch (err) {
@@ -25,7 +25,7 @@ export const login = (formValues: Object) => {
             const config = getAxiosConfig();
             const body = getAxiosBody(formValues);
     
-            const res = await axios.post(`${API}/login`, body, config);
+            const res = await axios.post(`${API}/login`, body, {...config, withCredentials: true});
                         
             dispatch({type: LOGIN, payload: res.data});
         } catch (err) {
@@ -39,7 +39,7 @@ export const verifyUser = (userId: number) => {
         return async (dispatch: Dispatch) => {
             const config = getAxiosConfig(false);
 
-            const res = await axios.get(`${API}/verify_user/${userId}`, config);
+            const res = await axios.get(`${API}/verify_user/${userId}`, {...config, withCredentials: true});
 
             if(res.data.success){
                 dispatch({type: VERIFY_USER})
