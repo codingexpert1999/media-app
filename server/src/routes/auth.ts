@@ -1,7 +1,7 @@
 import {Router} from 'express';
-import {login, signup, verifyUser} from '../controllers/auth';
+import {login, logOut, signup, verifyUser} from '../controllers/auth';
 import {check} from 'express-validator';
-import { userById } from '../middlewares/user';
+import { isAuthorized, profileById, userById } from '../middlewares/user';
 
 const router = Router();
 
@@ -20,6 +20,9 @@ router.post("/signup", [
 
 router.get("/verify_user/:userId", verifyUser);
 
+router.delete("/logout/:userId/:profileId", isAuthorized, logOut);
+
 router.param("userId", userById);
+router.param("profileId", profileById);
 
 export default router;

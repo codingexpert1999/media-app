@@ -177,3 +177,16 @@ export const verifyUser = async (req: Request, res: Response) => {
         res.status(500).json({error: err.message})
     }
 }
+
+export const logOut = (req: Request, res: Response) => {
+    try {
+        req.session.destroy((err) => {
+            if(err) throw err;
+            res.clearCookie("token");
+            res.json({message: "Session destroyed. User logged out successfully!"});
+        })
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({error: err.message})
+    }
+}

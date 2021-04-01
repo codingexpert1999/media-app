@@ -1,4 +1,4 @@
-import { REGISTER_USER, LOGIN, VERIFY_USER } from "../actionTypes/userActionTypes";
+import { REGISTER_USER, LOGIN, VERIFY_USER, LOG_OUT } from "../actionTypes/userActionTypes";
 import { UserPayload, UserState } from "../interfaces/user";
 
 const initialState: UserState = {
@@ -21,6 +21,8 @@ const userReducer = (state=initialState, action: {type: string, payload: UserPay
         case VERIFY_USER:
             let user = JSON.parse(localStorage.getItem("user") + "");
             return {...state, user, isAuthenticated: true}
+        case LOG_OUT:
+            return initialState;
         default:
             return state;
     }

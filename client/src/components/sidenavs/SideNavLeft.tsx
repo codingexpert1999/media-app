@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { openModal } from '../../actions/layoutActions';
 import { State } from '../../interfaces';
 
-const SideNavLeft = () => {
+const SideNavLeft = (props: {setShowSearchProfile: Function}) => {
     const dispatch = useDispatch();
 
     const {modalType} = useSelector((state:State) => state.layout);
@@ -20,7 +20,7 @@ const SideNavLeft = () => {
                 }}>Create Post +</button>
             </li>
             <li>
-                <button className="btn btn-add-friend btn-outline-success">Add Friend +</button>
+                <button className="btn btn-search-profile btn-outline-success" onClick={() => props.setShowSearchProfile(true)}>Search Profile</button>
             </li>
             <li className="clickable">Notifications <i className="fas fa-bell"></i></li>
             <li className="clickable">Messages <i className="fas fa-inbox"></i></li>

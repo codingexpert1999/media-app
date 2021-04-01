@@ -73,6 +73,8 @@ export const create = (req: Request, res: Response) => {
                 post.comments = []
                 post.username = req.user.username;
 
+                req.session.postsChanged = true;
+
                 res.json(post);
             })
         })
@@ -104,6 +106,8 @@ export const update = (req: Request, res: Response) => {
         db.query(query, (err:MysqlError) => {
             if(err) throw err;
 
+            req.session.postsChanged = true;
+
             res.json({message: "Post updated successfully!"})
         })
     } catch (err) {
@@ -118,6 +122,8 @@ export const remove = (req: Request, res: Response) => {
 
         db.query(query, (err:MysqlError) => {
             if(err) throw err;
+
+            req.session.postsChanged = true;
 
             res.json({message: "Post deleted successfully!"})
         })
@@ -142,6 +148,8 @@ export const like = (req: Request, res: Response) => {
 
             db.query(query, (err: MysqlError) => {
                 if(err) throw err;
+
+                req.session.postsChanged = true;
     
                 res.json({message: "Post liked"})
             })
@@ -168,6 +176,8 @@ export const unlike = (req: Request, res: Response) => {
 
             db.query(query, (err: MysqlError) => {
                 if(err) throw err;
+
+                req.session.postsChanged = true;
     
                 res.json({message: "Post unliked"})
             })

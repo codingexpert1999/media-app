@@ -18,6 +18,8 @@ declare module 'express-session' {
       user: User;
       profile: Profile;
       accessToken: string;
+      posts: Post[];
+      postsChanged: boolean;
     }
 }
 
@@ -75,7 +77,8 @@ app.use(session({
         domain: 'localhost',
         path: "/",
         sameSite: "strict"
-    }
+    },
+    unset: "destroy"
 }))
 
 // Routes

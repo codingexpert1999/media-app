@@ -6,9 +6,12 @@ import Moment from 'react-moment'
 import { useDispatch, useSelector } from 'react-redux';
 import { likePost, removePost, unlikePost, updatePost } from '../../actions/postActions';
 import { openModal, setIdToUseInModal, setPostIndex } from '../../actions/layoutActions';
+import { useHistory } from 'react-router';
+import { fetchCurrentProfile, setCurrentProfileUsername } from '../../actions/profileActions';
 
 const Post = (props: {post: PostObj, post_index: number}) => {
     const dispatch = useDispatch();
+    const history = useHistory()
 
     const {user} = useSelector((state: State) => state.user)
     const {profile} = useSelector((state: State) => state.profile)
@@ -57,7 +60,13 @@ const Post = (props: {post: PostObj, post_index: number}) => {
 
             <div className="card-body">
                 <div className="posted-by">
-                    <img src="/assets/user.png" className="img-fluid" alt="Default User"/> {props.post.username} 
+                    <span className="post-user" onClick={() => {
+                        dispatch(setCurrentProfileUsername(props.post.username))
+                        history.push(`/profile/${props.post.profile_id}`)
+                    }}>
+                        <img src="/assets/user.png" className="img-fluid" alt="Default User"/> {props.post.username}
+                    </span> 
+
                     <span className="time-posted"><Moment format="D MMMM YYYY hh:mm">{props.post.created_at}</Moment></span>
                 </div>
 

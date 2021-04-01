@@ -20,6 +20,8 @@ import {
     LIKE_BUTTON_CLICKED,
     CAN_CLICK_LIKE_BUTTON
 } from "../actionTypes/postActionTypes";
+import { FETCH_CURRENT_PROFILE_POSTS } from "../actionTypes/profileActionTypes";
+import { LOG_OUT } from "../actionTypes/userActionTypes";
 import { PostState, PostPayload } from "../interfaces/post";
 
 const initialState: PostState = {
@@ -38,7 +40,7 @@ const postReducer = (state= initialState, action: {type: string, payload: PostPa
 
     switch(type){
         case FETCH_POSTS:
-            return {...state, posts: [...updatedPosts, ...payload.posts], loading: false}
+            return {...state, posts: payload.posts, loading: false}
         case CREATE_POST:
             updatedPosts.unshift(payload.post)
             return {...state, posts: updatedPosts}
@@ -144,6 +146,10 @@ const postReducer = (state= initialState, action: {type: string, payload: PostPa
             return {...state, canClickLikeButton: false}
         case CAN_CLICK_LIKE_BUTTON:
             return {...state, canClickLikeButton: true}
+        case FETCH_CURRENT_PROFILE_POSTS:
+            return {...state, posts: payload.posts, loading: false}
+        case LOG_OUT:
+            return initialState;
         default:
             return state;
     }

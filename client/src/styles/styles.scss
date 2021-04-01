@@ -15,6 +15,10 @@ body{
     background: $light-gray;
 }
 
+.link{
+    text-decoration: none !important;
+}
+
 nav{
     background: $purple-color !important;
     color: white !important;
@@ -152,7 +156,7 @@ footer{
                 width: 100% !important;
                 font-size: 1.1rem !important;
 
-                &.btn-add-friend{
+                &.btn-search-profile{
                     background: $green-color;
                     color: white;
 
@@ -216,153 +220,274 @@ footer{
     .sidenav-right{       
         right: 2% !important;
     }
+}
 
-    .posts{
-        .card{
-            margin-bottom: 30px;
-            position: relative;
+.loading{
+    .spinner-border {
+        margin-right: 10px;
+    }
 
-            .update-form{
-                margin: 20px 0;
+    span{
+        font-size: 22px;
+    }
+}
 
-                textarea{
-                    margin-bottom: 20px;
-                    resize: none;
-                }
+.posts{
+    .card{
+        margin-bottom: 30px;
+        position: relative;
 
-                .buttons button:first-child{
-                    margin-right: 20px;
-                }
-            }
-        }
-
-        .loading{
-            .spinner-border {
-                margin-right: 10px;
-            }
-
-            span{
-                font-size: 22px;
-            }
-        }
-
-        .options-button{
-            position: absolute;
-            z-index: 2;
-            right:10px;
-            top: 5px;
-            color: #555;
-            font-size: 1.2rem;
-            cursor: pointer;
-        }
-
-        .options{
-            position: absolute;
-            top: 5px;
-            list-style: none;
-            padding: 10px 0;
-            right: -110px;
-            width: fit-content;
-            background: white;
-
-            li{
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                padding: 5px 15px;
-                margin-bottom: 10px;
-                color: #333;
-                width: 100%;
-
-                &:hover{
-                    cursor: pointer;
-                    background: #f9f9f9;
-                }
-
-                &:last-child{
-                    margin-bottom: 0;
-                }
-
-                i{
-                    margin-left: 10px;
-                }
-            }
-        }
-
-        img{
-            max-width: 35px;
-            border-radius: 50%;
-            margin-right: 5px;
-        }
-
-        .posted-by{
-            margin-bottom: 10px;
-        }
-
-        .card-text{
-            margin-bottom: 10px !important;
-        }
-
-        .time-posted{
-            color: #ccc;
-            margin-left: 15px;
-            font-size: .9rem;
-        }
-
-        .post-icons{
-            &>span{
-              margin-right: 25px;
-              color: #999;
-              user-select: none;
-
-              span:first-child{
-                  cursor: pointer;
-                  user-select: none;
-              }
-
-              span:last-child{
-                  margin-left: 8px;
-              }
-            }
-
-            span:last-child{
-                margin-right: 0;
-            }
-        }
-
-        .show-comments{
-            display: block;
-            width: 70%;
-            margin: 20px auto;
-        }
-
-        .show-answers{
-            display: block;
-            width: 30%;
+        .update-form{
             margin: 20px 0;
-        }
 
-        .answers{
-            padding-top: 10px;
-        }
+            textarea{
+                margin-bottom: 20px;
+                resize: none;
+            }
 
-        .comment, .answer{
-            width: 90%;
-            margin-left: 10%;
+            .buttons button:first-child{
+                margin-right: 20px;
+            }
+        }
+    }
+
+    .options-button{
+        position: absolute;
+        z-index: 2;
+        right:10px;
+        top: 5px;
+        color: #555;
+        font-size: 1.2rem;
+        cursor: pointer;
+    }
+
+    .options{
+        position: absolute;
+        top: 5px;
+        list-style: none;
+        padding: 10px 0;
+        right: -110px;
+        width: fit-content;
+        background: white;
+
+        li{
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 5px 15px;
             margin-bottom: 10px;
-            position: relative;
+            color: #333;
+            width: 100%;
+
+            &:hover{
+                cursor: pointer;
+                background: #f9f9f9;
+            }
 
             &:last-child{
                 margin-bottom: 0;
             }
+
+            i{
+                margin-left: 10px;
+            }
+        }
+    }
+
+    img{
+        max-width: 35px;
+        border-radius: 50%;
+        margin-right: 5px;
+    }
+
+    .posted-by{
+        margin-bottom: 10px;
+    }
+
+    .post-user{
+        cursor: pointer;
+    }
+
+    .card-text{
+        margin-bottom: 10px !important;
+    }
+
+    .time-posted{
+        color: #ccc;
+        margin-left: 15px;
+        font-size: .9rem;
+    }
+
+    .post-icons{
+        &>span{
+          margin-right: 25px;
+          color: #999;
+          user-select: none;
+
+          &:first-child{
+              cursor: pointer;
+              user-select: none;
+          }
+
+          &:last-child{
+              margin-left: 8px;
+          }
         }
 
-        .answer .options-button{
-            right: -5px;
+        span:last-child{
+            margin-right: 0;
+            margin-left: 5px;
+        }
+    }
+
+    .show-comments{
+        display: block;
+        width: 70%;
+        margin: 20px auto;
+    }
+
+    .show-answers{
+        display: block;
+        width: 30%;
+        margin: 20px 0;
+    }
+
+    .answers{
+        padding-top: 10px;
+    }
+
+    .comment, .answer{
+        width: 90%;
+        margin-left: 10%;
+        margin-bottom: 10px;
+        position: relative;
+
+        &:last-child{
+            margin-bottom: 0;
+        }
+    }
+
+    .answer .options-button{
+        right: -5px;
+    }
+}
+
+.search-profile-container{
+    position: fixed;
+    height: 100vh;
+    width: 100vw;
+    top: 0;
+    left: 0;
+    display: flex;
+    justify-content: center;
+    background: rgba(0,0,0, 0.7);
+    z-index: 9999;
+    padding-top: 200px;
+
+    .input-group{
+        position: relative;
+
+        input{
+            display: inline-block;
+            width: 500px;
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid white;
+            color: white;
+            outline: none;
+            padding: 5px 10px;
+            padding-right: 40px;
+    
+            &::placeholder{
+                color: #ccc;
+            }
+        }
+
+        i{
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        span{
+            position: fixed;
+            top: 60px;
+            right: 60px;
+            color: white;
+            cursor: pointer;
+            font-size: 2rem;
+            z-index: 9999999;
         }
     }
 }
 
+.profile{
+    min-height: calc(100vh - 70px);
+
+    .profile-header{
+        border-bottom: 1px solid #333;
+        padding: 30px 0;
+        margin-bottom: 30px;
+
+        .profile-header-top > div:first-child{
+            margin-bottom: 20px;
+
+            img{
+                width: 250px;
+                height: 250px;
+                border-radius: 50%;
+                margin-right: 30px;
+            }
+
+            .profile-details{
+                font-size: 1.3rem;
+
+                span{
+                    margin-bottom: 15px;
+
+                    &:last-child{
+                        margin-bottom: 0;
+                        cursor: pointer;
+                    }
+
+                    strong{
+                        font-style: italic;
+                    }
+                }
+            }
+        }
+
+        
+
+        .description{
+            width: 500px;
+            margin-bottom: 20px;
+
+            p{
+                margin-bottom: 20px;
+            }
+
+            form{
+                width: 100%;
+                textarea{
+                    resize: none !important;
+                    margin-bottom: 10px;
+                }
+
+                button.btn-primary{
+                    margin-right: 10px;
+                }
+            }
+        }
+    }
+}
+
+
+
+// Media Queries
 @media (max-width: 1600px) {
     .dashboard{
         max-width: 800px;

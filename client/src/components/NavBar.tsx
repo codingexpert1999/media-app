@@ -1,10 +1,14 @@
 import React, {useState} from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { Link, useHistory } from 'react-router-dom';
 import { openForm } from '../actions/layoutActions';
+import { logOut } from '../actions/userActions';
 import { State } from '../interfaces';
 
 const NavBar = () => {
     const dispatch = useDispatch();
+    // const history = useHistory();
+    const {profile} = useSelector((state: State) => state.profile)
     const {isAuthenticated, user} = useSelector((state: State) => state.user);
 
     const [openDropdown, setOpenDropdown] = useState(false);
@@ -26,6 +30,12 @@ const NavBar = () => {
                         </React.Fragment>
                     }
 
+                    {isAuthenticated && <Link to="/dashboard" className="link">
+                        <li className="nav-item">
+                            <span className="nav-link">Home</span>
+                        </li>
+                    </Link>}
+
                     { isAuthenticated && 
                         <React.Fragment>
                             <li className="nav-item dropdown">
@@ -34,10 +44,18 @@ const NavBar = () => {
                                 </span>
 
                                 <ul className={openDropdown ? "dropdown-menu show" : "dropdown-menu"}>
-                                    <li>
-                                        <span className="dropdown-item">Profile <i className="fas fa-user"></i></span>
-                                    </li>
-                                    <li>
+                                    <Link to={`/profile/${profile.id}`} className="link" onClick={() => setOpenDropdown(false)}>
+                                        <li>
+                                            <span className="dropdown-item">
+                                                Profile <i className="fas fa-user"></i>
+                                            </span>
+                                        </li>
+                                    </Link>
+                                    
+                                    <li onClick={() => {
+                                        setOpenDropdown(false)
+                                        dispatch(logOut(user.id, profile.id))
+                                    }}>
                                         <span className="dropdown-item">Log Out <i className="fas fa-power-off"></i></span>
                                     </li>
                                 </ul>

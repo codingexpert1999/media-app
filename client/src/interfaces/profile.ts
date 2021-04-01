@@ -1,8 +1,11 @@
+import { Post } from "./post";
+
 export interface ProfileState{
     profile: Profile;
     notifications: Notification[];
     friendRequests: FriendRequest[];
     friends: Friend[];
+    currentProfile: Profile;
 }
 
 export interface ProfilePayload{
@@ -10,6 +13,8 @@ export interface ProfilePayload{
     notifications: Notification[];
     friendRequests: FriendRequest[];
     friends: Friend[];
+    description: string;
+    username: string;
 }
 
 export interface Profile{
@@ -19,6 +24,7 @@ export interface Profile{
     friends: number;
     posts: number;
     status: string;
+    username: string | null;
 }
 
 export interface Notification{

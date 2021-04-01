@@ -3,16 +3,12 @@ export const validateEmail = (email: string) => {
     return re.test(String(email).toLowerCase());
 }
 
-export const getAxiosConfig = (isSendingData=true) => {
-    return isSendingData ? {
+export const getContentType = () => {
+    return {
         headers: {
             'Content-Type': "application/json",
         }
     } 
-        :
-    {
-        headers: {}
-    }
 }
 
 export const getAxiosBody = (obj: Object) => JSON.stringify(obj);

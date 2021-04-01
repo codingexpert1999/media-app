@@ -1,6 +1,6 @@
 import { LayoutPayload, LayoutState } from "../interfaces/layout";
 import { CLEAR_FORM_ERRORS, CLOSE_FORM, FORM_ERROR_OCCURED, SUBMIT_FORM, OPEN_FORM, REMOVE_FORM_ERROR, OPEN_MODAL, CLOSE_MODAL, SET_ID_TO_USE_IN_MODAL, SET_POST_INDEX, SET_COMMENT_INDEX } from "../actionTypes/layoutActionTypes"
-import { LOGIN, REGISTER_USER } from "../actionTypes/userActionTypes";
+import { LOGIN, LOG_OUT, REGISTER_USER } from "../actionTypes/userActionTypes";
 
 const initialState:LayoutState = {
     formType: null,
@@ -47,6 +47,8 @@ const layoutReducer = (state=initialState, action: {type: String, payload: Layou
             return {...state, postIndex: payload.index}
         case SET_COMMENT_INDEX:
             return {...state, commentIndex: payload.index}
+        case LOG_OUT:
+            return initialState;
         default:
             return state;
     }
