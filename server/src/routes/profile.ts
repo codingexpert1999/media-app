@@ -26,7 +26,9 @@ router.post("/profile/accept_friend_request/:userId/:profileId", isAuthorized, [
 router.get("/profile/:currentProfile/:userId/:profileId", isAuthorized, fetchCurrentProfile);
 router.get("/profile/:currentProfile/posts/:userId/:profileId", isAuthorized, fetchProfilePosts);
 
-router.put("/profile/description/:userId/:profileId", isAuthorized, updateProfileDescription);
+router.put("/profile/description/:userId/:profileId", isAuthorized,[
+    check("description", "Description is required").notEmpty()
+], updateProfileDescription);
 
 router.param("userId", userById);
 router.param("profileId", profileById);
