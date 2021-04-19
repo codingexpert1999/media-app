@@ -1,11 +1,14 @@
-import { Post } from "./post";
-
 export interface ProfileState{
     profile: Profile;
     notifications: Notification[];
     friendRequests: FriendRequest[];
+    sendedFriendRequests: SendedFriendRequest[];
     friends: Friend[];
     currentProfile: Profile;
+    searchResults: SearchedProfile[];
+    searchMatches: SearchMatch[];
+    showSearchingResults: boolean;
+    canClickRequestButton: boolean;
 }
 
 export interface ProfilePayload{
@@ -15,6 +18,13 @@ export interface ProfilePayload{
     friends: Friend[];
     description: string;
     username: string;
+    searchResults: SearchedProfile[];
+    searchMatches: SearchMatch[];
+    canClickRequestButton: boolean;
+    friendshipId: number;
+    sendedFriendRequests: SendedFriendRequest[];
+    receiverProfileId: number;
+    senderProfileId: number;
 }
 
 export interface Profile{
@@ -40,7 +50,23 @@ export interface FriendRequest{
     sender_profile_id: number;
 }
 
+export interface SendedFriendRequest{
+    id: number;
+    receiver_profile_id: number;
+}
+
 export interface Friend{
     id: number;
     friend_profile_id: number;
+    username: string;
+}
+
+export interface SearchedProfile{
+    profile_id: number;
+    username: string;
+    profile_image: string;
+}
+
+export interface SearchMatch{
+    username: string;
 }

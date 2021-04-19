@@ -17,6 +17,7 @@ const Post = (props: {post: PostObj, post_index: number}) => {
     const {profile} = useSelector((state: State) => state.profile)
     const {postsLiked, canClickLikeButton} = useSelector((state: State) => state.post)
     const {modalType} = useSelector((state: State) => state.layout)
+    const {currentProfile} = useSelector((state: State) => state.profile)
 
     const [showComments, setShowComments] = useState(false);
     const [showOptions, setShowOptions] = useState(false);
@@ -42,9 +43,15 @@ const Post = (props: {post: PostObj, post_index: number}) => {
     return (
         <div className="card">
 
-            {props.post.profile_id === profile.id && <span className="options-button" onClick={() => setShowOptions(!showOptions)}>
-                <i className="fas fa-ellipsis-h"></i>
-            </span>}
+            {
+                (
+                    props.post.profile_id === profile.id ||
+                    (currentProfile && currentProfile.id === profile.id)
+                )  &&
+                <span className="options-button" onClick={() => setShowOptions(!showOptions)}>
+                    <i className="fas fa-ellipsis-h"></i>
+                </span>
+            }
 
             {showOptions && <ul className="options shadow card">
                 <li onClick={() => {

@@ -51,6 +51,7 @@ export interface Friendship{
     id: number;
     my_profile_id: number;
     friend_profile_id: number;
+    username: string;
 }
 
 export interface JwtError{

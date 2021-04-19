@@ -1,6 +1,7 @@
 import React from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { openModal } from '../../actions/layoutActions';
+import { clearMatches } from '../../actions/profileActions';
 import { State } from '../../interfaces';
 
 const SideNavLeft = (props: {setShowSearchProfile: Function}) => {
@@ -20,7 +21,12 @@ const SideNavLeft = (props: {setShowSearchProfile: Function}) => {
                 }}>Create Post +</button>
             </li>
             <li>
-                <button className="btn btn-search-profile btn-outline-success" onClick={() => props.setShowSearchProfile(true)}>Search Profile</button>
+                <button className="btn btn-search-profile btn-outline-success" onClick={() => {
+                    dispatch(clearMatches())
+                    props.setShowSearchProfile(true)
+                }}>
+                    Search Profile
+                </button>
             </li>
             <li className="clickable">Notifications <i className="fas fa-bell"></i></li>
             <li className="clickable">Messages <i className="fas fa-inbox"></i></li>

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { getFriendRequests, getFriends, getNotifications, getProfile, setCurrentProfileUsername } from '../../actions/profileActions'
+import { getFriendRequests, getFriends, getNotifications, getProfile, getSendedFriendRequests, setCurrentProfileUsername } from '../../actions/profileActions'
 import CreatePost from '../modals/CreatePost'
 import Posts from '../post/Posts'
 import SideNavLeft from '../sidenavs/SideNavLeft'
@@ -10,10 +10,11 @@ import { fetchPosts, getAllLikes } from '../../actions/postActions'
 import CreateComment from '../modals/CreateComment'
 import CreateAnswer from '../modals/CreateAnswer'
 import SearchProfile from '../modals/SearchProfile'
+import SearchedProfileResults from '../profile/SearchedProfileResults'
 
 const Dashboard = () => {
     const {user} = useSelector((state:State) => state.user) 
-    const {profile} = useSelector((state:State) => state.profile)
+    const {profile, showSearchingResults} = useSelector((state:State) => state.profile)
     const {showModal, modalType} = useSelector((state:State) => state.layout) 
     const dispatch = useDispatch();
 
@@ -30,6 +31,7 @@ const Dashboard = () => {
             dispatch(fetchPosts(user.id, profile.id));
             dispatch(getFriends(user.id, profile.id));
             dispatch(getFriendRequests(user.id, profile.id));
+            dispatch(getSendedFriendRequests(user.id, profile.id));
             dispatch(getNotifications(user.id, profile.id));
         }
     }, [profile, dispatch])
@@ -50,7 +52,9 @@ const Dashboard = () => {
 
             {showSearchProfile && <SearchProfile setShowSearchProfile={setShowSearchProfile}/>}
 
-            <Posts/>
+            {showSearchingResults && <SearchedProfileResults/>}
+
+            {!showSearchingResults && <Posts/>}
         </div>
     )
 }

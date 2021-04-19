@@ -111,20 +111,6 @@ footer{
     min-height: calc(100vh - 70px);
     padding: 30px 10px;
 
-    .create-post{
-        position: fixed;
-        width: 600px;
-        height: fit-content;
-        top: 10%;
-        left: 50%;
-        transform: translateX(-50%);
-
-        textarea{
-            margin-bottom: 20px;
-            resize: none;
-        }
-    }
-
     .sidenav{
         min-width: 250px;
         position: fixed !important;
@@ -220,6 +206,46 @@ footer{
     .sidenav-right{       
         right: 2% !important;
     }
+
+    .search-results{
+        .card {
+            margin-bottom: 30px;
+
+            &:last-child{
+                margin-bottom: 0;
+            }
+
+            div:first-child{
+                width: 100px;
+                height: 100px;
+                border-radius: 50%;
+                overflow: hidden;
+                margin-right: 30px;
+                cursor: pointer;
+    
+                img{
+                    width: 100%;
+                    height: 100%;
+                }
+            }
+
+            div:last-child{
+                span{
+                    font-size: 1.3rem;
+                    font-weight: bold;
+                    font-style: italic;
+                    margin-bottom: 10px;
+                    cursor: pointer;
+                }
+            }
+        }
+
+        h2{
+            
+            font-weight: 400;
+            font-size: 1.4rem;
+        }
+    }
 }
 
 .loading{
@@ -229,6 +255,20 @@ footer{
 
     span{
         font-size: 22px;
+    }
+}
+
+.create-post{
+    position: fixed;
+    width: 600px;
+    height: fit-content;
+    top: 10%;
+    left: 50%;
+    transform: translateX(-50%);
+
+    textarea{
+        margin-bottom: 20px;
+        resize: none;
     }
 }
 
@@ -323,14 +363,14 @@ footer{
           margin-right: 25px;
           color: #999;
           user-select: none;
+          cursor: pointer;
 
           &:first-child{
-              cursor: pointer;
-              user-select: none;
+            user-select: none;
           }
 
           &:last-child{
-              margin-left: 8px;
+            margin-left: 8px;
           }
         }
 
@@ -403,16 +443,22 @@ footer{
             }
         }
 
-        i{
+        button{
             position: absolute;
-            top: 10px;
-            right: 10px;
+            top: 5px;
+            right: 5px;
             color: white;
             font-size: 1rem;
             cursor: pointer;
+            background: transparent;
+            display: inline-block;
+            width: fit-content;
+            height: fit-content;
+            border: none;
+            outline: none;
         }
 
-        span{
+        & > span{
             position: fixed;
             top: 60px;
             right: 60px;
@@ -421,11 +467,55 @@ footer{
             font-size: 2rem;
             z-index: 9999999;
         }
+
+        .autocomplete{
+            position: absolute;
+            top: 34px;
+            left: 1px;
+            width: 100%;
+            padding: 0;
+            margin: 0;
+            background: white;
+            color: #333;
+            list-style: none;
+            max-height: 400px;
+            overflow-y: auto;
+
+            &::-webkit-scrollbar{
+                width: 8px;
+            }
+            &::-webkit-scrollbar-thumb{
+                background: #777;
+                border-radius: 5px;
+            }
+
+            li{
+                padding: 5px 10px;
+                width: 100%;
+                border-bottom: 1px solid #333;
+    
+                &:hover{
+                    cursor: pointer;
+                    background: var(--bs-primary);
+                    color: white;
+                }
+    
+                &:last-child{
+                    border-bottom: none;
+                }
+
+                span{
+                    color: #ccc;
+                }
+            }
+        }
     }
 }
 
 .profile{
     min-height: calc(100vh - 70px);
+    width: 70%;
+    margin: 0 auto;
 
     .profile-header{
         border-bottom: 1px solid #333;

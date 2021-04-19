@@ -1,13 +1,13 @@
 import React, {useState} from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Link, useHistory } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { openForm } from '../actions/layoutActions';
+import { hideSearchedResults } from '../actions/profileActions';
 import { logOut } from '../actions/userActions';
 import { State } from '../interfaces';
 
 const NavBar = () => {
     const dispatch = useDispatch();
-    // const history = useHistory();
     const {profile} = useSelector((state: State) => state.profile)
     const {isAuthenticated, user} = useSelector((state: State) => state.user);
 
@@ -30,7 +30,7 @@ const NavBar = () => {
                         </React.Fragment>
                     }
 
-                    {isAuthenticated && <Link to="/dashboard" className="link">
+                    {isAuthenticated && <Link to="/dashboard" className="link" onClick={() => dispatch(hideSearchedResults())}>
                         <li className="nav-item">
                             <span className="nav-link">Home</span>
                         </li>

@@ -23,7 +23,7 @@ declare module 'express-session' {
     }
 }
 
-import express, { NextFunction, Request, Response } from 'express';
+import express from 'express';
 import {config} from 'dotenv'
 
 import connectRedis from 'connect-redis';

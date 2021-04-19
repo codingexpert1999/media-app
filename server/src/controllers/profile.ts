@@ -26,17 +26,9 @@ export const fetch = (req: Request, res: Response) => {
 
 export const sendFriendRequest = (req: Request, res: Response) => {
     try {
-        const errors = validationResult(req);
+        const receiverProfileId = parseInt(req.params.receiverProfileId)
 
-        if(!errors.isEmpty()){
-            return res.status(404).json({errors: errors.array()});
-        }
-
-        const {receiverProfileId} = req.body;
-
-        let profileId = req.params.profileId;
-
-        let query = `SELECT * FROM friend_requests WHERE sender_profile_id=${profileId} AND receiver_profile_id=${receiverProfileId}`;
+        let query = `SELECT * FROM friend_requests WHERE sender_profile_id=${req.profile.id} AND receiver_profile_id=${receiverProfileId}`;
 
         db.query(query, (err: MysqlError, result) => {
             if(err) throw err;
@@ -55,7 +47,7 @@ export const sendFriendRequest = (req: Request, res: Response) => {
                 }
 
                 query = `
-                    INSERT INTO friend_requests(sender_profile_id, receiver_profile_id) VALUES(${profileId}, ${receiverProfileId})
+                    INSERT INTO friend_requests(sender_profile_id, receiver_profile_id) VALUES(${req.profile.id}, ${receiverProfileId})
                 `;
 
                 db.query(query, (err: MysqlError) => {
@@ -74,17 +66,9 @@ export const sendFriendRequest = (req: Request, res: Response) => {
 
 export const acceptFriendRequest = (req: Request, res: Response) => {
     try {
-        const errors = validationResult(req);
+        const senderProfileId = parseInt(req.params.senderProfileId)
 
-        if(!errors.isEmpty()){
-            return res.status(404).json({errors: errors.array()});
-        }
-
-        const {senderProfileId} = req.body;
-
-        let receiverProfileId = req.params.profileId;
-
-        let query = `SELECT * FROM friend_requests WHERE sender_profile_id=${senderProfileId} AND receiver_profile_id=${receiverProfileId}`;
+        let query = `SELECT * FROM friend_requests WHERE sender_profile_id=${senderProfileId} AND receiver_profile_id=${req.profile.id}`;
 
         db.query(query, (err: MysqlError, result) => {
             if(err) throw err;
@@ -93,7 +77,7 @@ export const acceptFriendRequest = (req: Request, res: Response) => {
                 return res.status(404).json({error: "Friend request not found!"})
             }
 
-            query = `CALL acceptFriendRequest(${senderProfileId}, ${receiverProfileId}, '${req.user.username}')`;
+            query = `CALL acceptFriendRequest(${senderProfileId}, ${req.profile.id}, '${req.user.username}')`;
 
             db.query(query, (err: MysqlError) => {
                 if(err) throw err;
@@ -106,6 +90,23 @@ export const acceptFriendRequest = (req: Request, res: Response) => {
         res.status(500).json({error: err.message});
     }
 }
+
+export const cancelFriendRequest = (req: Request, res: Response) => {
+    try {
+        const receiverProfileId = parseInt(req.params.receiverProfileId);
+
+        let query = `DELETE FROM friend_requests WHERE sender_profile_id=${req.profile.id} AND receiver_profile_id=${receiverProfileId}`;
+
+        db.query(query, (err: MysqlError) => {
+            if(err) throw err;
+
+            res.json({message: "Request deleted successfully"})
+        })
+    } catch (err) {
+        console.log(err)
+        res.status(500).json({error: err.message})
+    }
+} 
 
 export const getNotifications = (req: Request, res: Response) => {
     try {
@@ -140,9 +141,32 @@ export const getFriendRequests = (req: Request, res: Response) => {
     }
 }
 
+export const getSendedFriendRequests = (req: Request, res: Response) => {
+    try {
+        console.log(req.profile.id)
+        let query = `SELECT id, receiver_profile_id FROM friend_requests WHERE sender_profile_id=${req.profile.id}`;
+
+        db.query(query, (err: MysqlError, result) => {
+            if(err) throw err;
+
+            console.log(result)
+
+            res.json(result);
+        })
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({error: err.message});
+    }
+}
+
 export const getFriends = (req: Request, res: Response) => {
     try {
-        let query = `SELECT * FROM friends WHERE my_profile_id=${req.profile.id} OR friend_profile_id=${req.profile.id}`;
+        let query = `
+            SELECT f.id, f.my_profile_id, f.friend_profile_id, u.username FROM friends AS f 
+            INNER JOIN profiles AS p ON (f.my_profile_id=p.id OR f.friend_profile_id=p.id)
+            INNER JOIN users AS u ON u.id=p.user_id
+            WHERE (f.my_profile_id=${req.profile.id} OR f.friend_profile_id=${req.profile.id}) AND username!='${req.user.username}'
+        `;
 
         db.query(query, (err: MysqlError, result) => {
             if(err) throw err;
@@ -156,7 +180,7 @@ export const getFriends = (req: Request, res: Response) => {
                     friend_profile_id = friendship.my_profile_id;
                 }
 
-                return {id: friendship.id, friend_profile_id}
+                return {id: friendship.id, friend_profile_id, username: friendship.username};
             })
 
             res.json(friends);
@@ -267,6 +291,88 @@ export const updateProfileDescription = (req: Request, res: Response) => {
             req.session.profile = req.profile;
 
             res.json({message: "Description updated successfully!"})
+        })
+    } catch (err) {
+        console.log(err)
+        res.status(500).json({error: err.message})
+    }
+}
+
+export const findProfileUsernameMatches = (req: Request, res: Response) => {
+    try {
+        const errors = validationResult(req);
+
+        if(!errors.isEmpty()){
+            return res.status(400).json({errors: errors.array()});
+        }
+
+        const {firstLetter} = req.body;
+
+        let query = `SELECT username FROM users WHERE username LIKE '${firstLetter}%' LIMIT 20`
+
+        db.query(query, (err:MysqlError, result) => {
+            if(err) throw err;
+
+            res.json(result);
+        })
+    } catch (err) {
+        console.log(err)
+        res.status(500).json({error: err.message});
+    }
+}
+
+export const getSearchResults = (req: Request, res: Response) => {
+    try {
+        const errors = validationResult(req);
+
+        if(!errors.isEmpty()){
+            return res.status(400).json({errors: errors.array()});
+        }
+
+        const {username} = req.body;
+
+        let query = `
+            SELECT u.username, p.id AS profile_id, p.profile_image FROM users AS u 
+            INNER JOIN profiles AS p ON u.id=p.user_id WHERE username='${username}'
+        `;
+
+        db.query(query, (err: MysqlError, result) => {
+            if(err) throw err;
+
+            let user = result[0];
+
+            query = `
+                SELECT u.username, p.id AS profile_id, p.profile_image FROM users AS u 
+                INNER JOIN profiles AS p ON u.id=p.user_id 
+                WHERE username!='${username}' AND username!='${req.user.username}' AND username LIKE '${username[0]}%' LIMIT 10
+            `;
+
+            db.query(query, (err:MysqlError, result) => {
+                if(err) throw err;
+
+                if(user){
+                    result.unshift(user)
+                }
+
+                res.json(result);
+            })
+        })
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({error: err.message});
+    }
+}
+
+export const removeFriend = (req: Request, res: Response) => {
+    try {
+        const friendshipId = parseInt(req.params.friendshipId);
+
+        let query = `DELETE FROM friends WHERE id=${friendshipId}`;
+
+        db.query(query, (err: MysqlError) => {
+            if(err) throw err;
+
+            res.json({message: "Friend deleted successfully!"});
         })
     } catch (err) {
         console.log(err)

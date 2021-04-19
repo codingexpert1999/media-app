@@ -3,18 +3,24 @@ import { useDispatch, useSelector } from 'react-redux'
 import Posts from '../post/Posts'
 import {State} from '../../interfaces'
 import { fetchCurrentProfile, fetchCurrentProfilePosts, updateProfileDescription } from '../../actions/profileActions'
+import CreateComment from '../modals/CreateComment'
+import CreateAnswer from '../modals/CreateAnswer'
+import CreatePost from '../modals/CreatePost'
+import { openModal } from '../../actions/layoutActions'
+import RequestButton from './RequestButton'
 
 const Profile = () => {
     const dispatch = useDispatch();
     const {user} = useSelector((state:State) => state.user)
     const {loading} = useSelector((state: State) => state.post);
-    const {profile, currentProfile, friends} = useSelector((state:State) => state.profile)
-    
-    const [description, setDescription] = useState(currentProfile.profile_description);
-    const [editProfile, setEditProfile] = useState(false);
+    const { profile, currentProfile } = useSelector((state:State) => state.profile)
+
+    const {showModal, modalType} = useSelector((state:State) => state.layout) 
 
     const isCurrentProfile = profile.id === currentProfile.id;
-    const isFriend = friends.find(friend => friend.friend_profile_id === currentProfile.id) ? true : false;
+
+    const [description, setDescription] = useState(currentProfile.profile_description);
+    const [editProfile, setEditProfile] = useState(false);
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -54,6 +60,19 @@ const Profile = () => {
                                 <span><strong>{isCurrentProfile ? user.username : currentProfile.username}</strong></span>
                                 <span>712 Friends</span>
                                 <span>32 Posts</span>
+
+                                {
+                                    isCurrentProfile &&
+                                    <button 
+                                        className="btn btn-primary mb-3"
+                                        onClick={() => {
+                                            dispatch(openModal("post"))
+                                        }}
+                                    >
+                                        Create Post +
+                                    </button>
+                                }
+
                                 {
                                     isCurrentProfile &&
                                     <span onClick={() => setEditProfile(!editProfile)}>Edit <i className="fas fa-edit"></i></span>
@@ -80,16 +99,18 @@ const Profile = () => {
                         </div>
 
                         {!isCurrentProfile && 
-                            <button 
-                                className={isFriend ? "btn btn-danger" : "btn btn-success"}
-                            >
-                                {isFriend ? "Remove Friend" : "Send Friend Request"}
-                            </button>
+                            <RequestButton profileId={currentProfile.id} />
                         }
                     </div>
                 </div>
 
                 <Posts/>
+
+                {showModal && modalType === "post" && <CreatePost/>}
+
+                {showModal && modalType === "comment" && <CreateComment/>}
+
+                {showModal && modalType === "answer" && <CreateAnswer/>}
             </div>}
         </div>
     )

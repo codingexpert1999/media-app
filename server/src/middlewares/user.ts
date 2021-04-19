@@ -71,7 +71,6 @@ export const profileById = (req: Request, res: Response, next: NextFunction, id:
                 }
 
                 req.session.profile = req.profile;
-    
                 next();
             });
         }
@@ -92,7 +91,7 @@ export const isAuthorized = async (req: Request, res: Response, next: NextFuncti
         let secret = process.env.JWT_SECRET || "secret";
 
         const verification = await verifyToken(auth, jwtSecret);
-    
+
         if(verification.error === JwtErrorType.INVALID){
             return res.status(401).json({ error: "User not authorized" });
         }else if(verification.error === JwtErrorType.EXPIRED){
