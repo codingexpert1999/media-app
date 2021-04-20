@@ -149,8 +149,6 @@ export const getSendedFriendRequests = (req: Request, res: Response) => {
         db.query(query, (err: MysqlError, result) => {
             if(err) throw err;
 
-            console.log(result)
-
             res.json(result);
         })
     } catch (err) {
