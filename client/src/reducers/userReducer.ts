@@ -1,8 +1,10 @@
 import { REGISTER_USER, LOGIN, VERIFY_USER, LOG_OUT } from "../actionTypes/userActionTypes";
-import { UserPayload, UserState } from "../interfaces/user";
+import { UserPayload, UserState, User } from "../interfaces/user";
+
+const savedUser = JSON.parse(localStorage.getItem("user") + "") as User
 
 const initialState: UserState = {
-    user: {
+    user: savedUser ? savedUser : {
         id: 0,
         username: "",
         email: ""

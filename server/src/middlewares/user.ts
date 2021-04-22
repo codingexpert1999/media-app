@@ -88,8 +88,6 @@ export const isAuthorized = async (req: Request, res: Response, next: NextFuncti
           return res.status(401).json({ error: "User not authorized" });
         }
     
-        let secret = process.env.JWT_SECRET || "secret";
-
         const verification = await verifyToken(auth, jwtSecret);
 
         if(verification.error === JwtErrorType.INVALID){

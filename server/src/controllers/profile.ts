@@ -143,7 +143,6 @@ export const getFriendRequests = (req: Request, res: Response) => {
 
 export const getSendedFriendRequests = (req: Request, res: Response) => {
     try {
-        console.log(req.profile.id)
         let query = `SELECT id, receiver_profile_id FROM friend_requests WHERE sender_profile_id=${req.profile.id}`;
 
         db.query(query, (err: MysqlError, result) => {
@@ -306,7 +305,7 @@ export const findProfileUsernameMatches = (req: Request, res: Response) => {
 
         const {firstLetter} = req.body;
 
-        let query = `SELECT username FROM users WHERE username LIKE '${firstLetter}%' LIMIT 20`
+        let query = `SELECT username FROM users WHERE username!='${req.user.username}' AND username LIKE '${firstLetter}%' LIMIT 20`
 
         db.query(query, (err:MysqlError, result) => {
             if(err) throw err;
