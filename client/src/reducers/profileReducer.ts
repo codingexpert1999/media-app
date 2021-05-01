@@ -13,7 +13,9 @@ import {
     FETCH_SENDED_FRIEND_REQUESTS,
     SET_CAN_CLICK_REQUEST_BUTTON,
     CANCEL_FRIEND_REQUEST,
-    ACCEPT_FRIEND_REQUEST
+    ACCEPT_FRIEND_REQUEST,
+    READ_NOTIFICATIONS,
+    DELETE_NOTIFICATION
 } from "../actionTypes/profileActionTypes";
 import { LOG_OUT } from "../actionTypes/userActionTypes";
 import { ProfilePayload, ProfileState } from "../interfaces/profile";
@@ -54,6 +56,7 @@ const profileReducer = (state=initialState, action: {type:string, payload: Profi
     let currentProfile = state.currentProfile
     let sendedFriendRequests = state.sendedFriendRequests
     let friendRequests = state.friendRequests;
+    let notifications = state.notifications;
 
     switch(type){
         case FETCH_PROFILE:
@@ -93,6 +96,18 @@ const profileReducer = (state=initialState, action: {type:string, payload: Profi
         case ACCEPT_FRIEND_REQUEST:
             friendRequests = friendRequests.filter(request => request.sender_profile_id !== payload.senderProfileId);
             return {...state, friendRequests}
+        case READ_NOTIFICATIONS:
+            notifications = notifications.map(notification => {
+                if(!notification.seen){
+                    notification.seen = 1;
+                }
+
+                return notification;
+            });
+
+            return {...state, notifications}
+        case DELETE_NOTIFICATION:
+            return {...state, notifications: notifications.filter(notification => notification.id !== payload.notificationId)}
         default:
             return state;
     }

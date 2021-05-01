@@ -25,6 +25,7 @@ export interface ProfilePayload{
     sendedFriendRequests: SendedFriendRequest[];
     receiverProfileId: number;
     senderProfileId: number;
+    notificationId: number;
 }
 
 export interface Profile{
@@ -43,6 +44,8 @@ export interface Notification{
     notification: string;
     sender_profile_id: number;
     created_at: string;
+    seen: number;
+    profile_image: string;
 }
 
 export interface FriendRequest{

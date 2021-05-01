@@ -20,7 +20,9 @@ import {
     FETCH_SENDED_FRIEND_REQUESTS,
     SET_CAN_CLICK_REQUEST_BUTTON,
     CANCEL_FRIEND_REQUEST,
-    REMOVE_FRIEND
+    REMOVE_FRIEND,
+    READ_NOTIFICATIONS,
+    DELETE_NOTIFICATION
 } from '../actionTypes/profileActionTypes';
 import { POSTS_LOADING } from '../actionTypes/postActionTypes';
 
@@ -44,7 +46,7 @@ export const getNotifications = (userId: number, profileId: number) => {
 
             dispatch({type: FETCH_NOTIFICATIONS, payload: {notifications: res.data}});
         } catch (err) {
-            toast.error("Notifications couldn't be fetched")
+            toast.error("Notifications couldn't be fetched!")
         }
     }
 }
@@ -247,6 +249,30 @@ export const removeFriend = (userId: number, profileId: number, friendshipId: nu
             toast.error("Friend couldn't be removed");
         }finally{
             dispatch(setCanClickRequestButton(true));
+        }
+    }
+}
+
+export const readNotifications = (userId: number, profileId: number) => {
+    return async (dispatch: Dispatch) => {
+        try {
+            await axios.put(`${API}/profile/notifications/${userId}/${profileId}`, null, {withCredentials: true});
+
+            dispatch({type: READ_NOTIFICATIONS});
+        } catch (err) {
+            toast.error("Notifications couldn't be updated!")
+        }
+    }
+}
+
+export const deleteNotification = (userId: number, profileId: number, notificationId: number) => {
+    return async (dispatch: Dispatch) => {
+        try {
+            await axios.delete(`${API}/profile/notifications/${notificationId}/${userId}/${profileId}`, {withCredentials: true});
+
+            dispatch({type: DELETE_NOTIFICATION, payload: {notificationId}});
+        } catch (err) {
+            toast.error("Notifications couldn't be updated!")
         }
     }
 }

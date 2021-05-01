@@ -11,6 +11,7 @@ import CreateComment from '../modals/CreateComment'
 import CreateAnswer from '../modals/CreateAnswer'
 import SearchProfile from '../modals/SearchProfile'
 import SearchedProfileResults from '../profile/SearchedProfileResults'
+import Notifications from '../modals/notification/Notifications'
 
 const Dashboard = () => {
     const {user} = useSelector((state:State) => state.user) 
@@ -19,6 +20,7 @@ const Dashboard = () => {
     const dispatch = useDispatch();
 
     const [showSearchProfile, setShowSearchProfile] = useState(false);
+    const [showNotifications, setShowNotifications] = useState(false);
 
     useEffect(() => {
         dispatch(getProfile(user.id));
@@ -39,7 +41,7 @@ const Dashboard = () => {
     return (
         <div className="dashboard container">
             <React.Fragment>
-                <SideNavLeft setShowSearchProfile={setShowSearchProfile}/>
+                <SideNavLeft setShowSearchProfile={setShowSearchProfile} setShowNotifications={setShowNotifications}/>
 
                 <SideNavRight/>
             </React.Fragment>
@@ -55,6 +57,8 @@ const Dashboard = () => {
             {showSearchingResults && <SearchedProfileResults/>}
 
             {!showSearchingResults && <Posts/>}
+
+            {showNotifications && <Notifications setShowNotifications={setShowNotifications}/>}
         </div>
     )
 }

@@ -38,7 +38,7 @@ export const signup = (req: Request, res: Response) => {
             db.query(query, (err:MysqlError) => {
                 if(err) throw err;
 
-                query = `SELECT * FROM users WHERE username=${username} AND email=${email}`;
+                query = `SELECT * FROM users WHERE username='${username}' AND email='${email}'`;
 
                 db.query(query, async (err: MysqlError, result) => {
                     if(err) throw err;

@@ -30,7 +30,20 @@ export const create = (req: Request, res: Response) => {
                 comment.answers = [];
                 comment.username = req.user.username;
 
-                res.json(comment);
+                if(req.profile.id != req.post.profile_id){
+                    query = `
+                        INSERT INTO notifications(notification_type, notification, profile_id, sender_profile_id) 
+                        VALUES('comment', '${req.user.username} comment on your post', ${req.post.profile_id}, ${req.profile.id})
+                    `
+
+                    db.query(query, (err: MysqlError) => {
+                        if(err) throw err;
+
+                        res.json(comment);
+                    })
+                }else{
+                    res.json(comment);
+                }
             })
         })
     } catch (err) {
@@ -100,7 +113,62 @@ export const like = (req: Request, res: Response) => {
             db.query(query, (err: MysqlError) => {
                 if(err) throw err;
     
-                res.json({message: "Comment liked"})
+                if(req.comment.profile_id !== req.profile.id){
+                    query = `
+                        SELECT id, interactions FROM notifications 
+                        WHERE profile_id=${req.comment.profile_id} AND comment_id=${req.comment.id}
+                    `;
+
+                    db.query(query, (err, result) => {
+                        if(err) throw err;
+
+                        if(result.length === 0){
+                            query = `SELECT id FROM comments_liked WHERE comment_id=${req.comment.id}`;
+
+                            db.query(query, (err: MysqlError, result) => {
+                                if(err) throw err;
+
+                                const interactions = result.length;
+
+                                let notification = "";
+
+                                if(interactions === 1){
+                                    notification = `${req.user.username} like your comment!`;
+                                }else{
+                                    notification = `${req.user.username} and ${interactions - 1} ${"other" + (interactions - 1 > 1 ? "s" : "")} like your comment!`
+                                }
+
+                                query = `
+                                        INSERT INTO notifications(notification_type, notification, profile_id, sender_profile_id, comment_id)
+                                        VALUES('like', '${notification}', ${req.comment.profile_id}, ${req.profile.id}, ${req.comment.id})
+                                    `
+
+                                db.query(query, (err) => {
+                                    if(err) throw err;
+    
+                                    res.json({message: "Comment liked"})
+                                })
+                            })
+                        }else{
+                            let notificationObj = result[0]
+                            let moreUsersStr = notificationObj.interactions === 0 ? " " : ` ${notificationObj.interactions} other` + (notificationObj.interactions > 1 ? "s " : " ")
+                            let notification = `${req.user.username} and${notificationObj.interactions} ${moreUsersStr}like your comment!`
+
+                            query = `
+                                UPDATE notifications SET interactions=${notificationObj.interactions + 1}, 
+                                notification='${notification}' WHERE id=${notificationObj.id}
+                            `
+
+                            db.query(query, (err) => {
+                                if(err) throw err;
+
+                                res.json({message: "Comment liked"})
+                            })
+                        }
+                    })
+                }else{
+                    res.json({message: "Comment liked"})
+                }
             })
         })
     } catch (err) {
@@ -125,7 +193,29 @@ export const unlike = (req: Request, res: Response) => {
             db.query(query, (err: MysqlError) => {
                 if(err) throw err;
     
-                res.json({message: "Comment unliked"})
+                if(req.comment.profile_id !== req.profile.id){
+                    query = `SELECT id, interactions FROM notifications WHERE profile_id=${req.comment.profile_id} AND comment_id=${req.comment.id}`
+
+                    db.query(query, (err,result) => {
+                        if(err) throw err;
+
+                        if(result.length === 0){
+                            return res.status(404).json({error: "Notification not found"})
+                        }
+                        
+                        let notification = result[0];
+
+                        query = `UPDATE notifications SET interactions=${notification.interactions - 1} WHERE id=${notification.id}`
+
+                        db.query(query, (err) => {
+                            if(err) throw err;
+
+                            res.json({message: "Comment unliked"})
+                        })
+                    })
+                }else{
+                    res.json({message: "Comment unliked"})
+                }
             })
         })
     } catch (err) {

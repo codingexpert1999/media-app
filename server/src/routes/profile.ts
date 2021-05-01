@@ -13,7 +13,9 @@ import {
     getSearchResults,
     getSendedFriendRequests,
     cancelFriendRequest,
-    removeFriend
+    removeFriend,
+    readNotifications,
+    deleteNotification
 } from '../controllers/profile';
 import {isAuthorized, userById, profileById} from '../middlewares/user'
 import {check} from 'express-validator';
@@ -52,6 +54,10 @@ router.post("/profile/get_searching_results/:userId/:profileId", isAuthorized, [
 router.delete("/profile/friend_request/:receiverProfileId/:userId/:profileId", isAuthorized, cancelFriendRequest);
 
 router.delete("/profile/friend/:friendshipId/:userId/:profileId", isAuthorized, removeFriend);
+
+router.put("/profile/notifications/:userId/:profileId", isAuthorized, readNotifications);
+
+router.delete("/profile/notifications/:notificationId/:userId/:profileId", isAuthorized, deleteNotification);
 
 router.param("userId", userById);
 router.param("profileId", profileById);

@@ -13,6 +13,7 @@ $light-gray: #F0F2F5;
 
 body{
     background: $light-gray;
+    overflow-x: hidden;
 }
 
 .link{
@@ -201,6 +202,29 @@ footer{
 
     .sidenav-left{
         left: 2% !important;
+
+        li{
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            i{
+                margin-left: 5px;
+            }
+
+            span{
+                margin-left: 10px;
+                background: var(--bs-danger);
+                color: white;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                width: 28px;
+                height: 28px;
+                border-radius: 50%;
+                font-size: .9rem;
+            }
+        }
     }
 
     .sidenav-right{       
@@ -575,7 +599,89 @@ footer{
     }
 }
 
+.notifications{
+    .modal-body{
+        max-height: 400px;
+        overflow-y: auto;
+        padding: 0;
 
+        &::-webkit-scrollbar{
+            width: 8px;
+        }
+        &::-webkit-scrollbar-thumb{
+            background: #777;
+            border-radius: 5px;
+        }
+        
+        .notification{
+            display: flex;
+            border-bottom: 1px solid #ccc;
+            padding: 15px;
+            background: #f0f7f7;
+
+            &:last-child{
+                border-top: none;
+                border-bottom: none;
+            }
+
+            &.seen{
+                background: white;
+            }
+
+            img{
+                width: 70px;
+                height: 70px;
+                margin-right: 20px;
+                border-radius: 50%;
+            }
+
+            .notification-message{
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                width: calc(100% - 90px);
+                position: relative;
+
+                p{
+                    margin-bottom: 0;
+                    width: 90%;
+                }
+
+                button{
+                    width: fit-content;
+                    height: 40px;
+                    margin-top: 10px;
+                }
+
+                .delete-notification{
+                    position: absolute;
+                    width: 15px;
+                    height: 15px;
+                    top: 5px;
+                    right: 5px;
+                    color: #333;
+                    cursor: pointer;
+                    font-size: 1.3rem;
+
+                    &::after{
+                        content: "\00d7";
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        width: 100%;
+                        height: 100%;
+                    }
+                }
+            }
+        }
+
+        .no-notifications{
+            padding: 15px;
+            margin-bottom: 0;
+            font-size: 1.1rem;
+        }
+    }
+}
 
 // Media Queries
 @media (max-width: 1600px) {

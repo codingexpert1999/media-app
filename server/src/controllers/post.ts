@@ -5,13 +5,13 @@ import { getAsyncMysqlResult } from '../helper';
 
 export const fetch = (req: Request, res: Response) => {
     try {
-        let profileId = req.params.profileId;
-
         let query = `
-            SELECT p.id, p.post_text, p.post_image, p.post_video, p.likes, p.created_at, p.profile_id, u.username FROM posts as p 
-            LEFT JOIN friends as f ON f.my_profile_id=${profileId} INNER JOIN profiles as prof ON prof.id=p.profile_id 
+            SELECT DISTINCT(p.id), p.post_text, p.post_image, p.post_video, p.likes, p.created_at, p.profile_id, u.username FROM posts as p 
+            LEFT JOIN friends as f ON f.my_profile_id=${req.profile.id} OR f.friend_profile_id=${req.profile.id}
+            INNER JOIN profiles as prof ON prof.id=p.profile_id 
             INNER JOIN users as u ON u.id=prof.user_id
-            WHERE p.profile_id=${profileId} OR p.profile_id=f.friend_profile_id ORDER BY p.created_at DESC LIMIT 0, 10
+            WHERE p.profile_id=${req.profile.id} OR (p.profile_id=f.friend_profile_id AND f.friend_profile_id!=${req.profile.id}) 
+            OR (p.profile_id=f.my_profile_id AND f.my_profile_id!=${req.profile.id}) ORDER BY p.created_at DESC LIMIT 0, 10;
         `;
 
         
@@ -73,8 +73,6 @@ export const create = (req: Request, res: Response) => {
                 post.comments = []
                 post.username = req.user.username;
 
-                req.session.postsChanged = true;
-
                 res.json(post);
             })
         })
@@ -106,8 +104,6 @@ export const update = (req: Request, res: Response) => {
         db.query(query, (err:MysqlError) => {
             if(err) throw err;
 
-            req.session.postsChanged = true;
-
             res.json({message: "Post updated successfully!"})
         })
     } catch (err) {
@@ -122,8 +118,6 @@ export const remove = (req: Request, res: Response) => {
 
         db.query(query, (err:MysqlError) => {
             if(err) throw err;
-
-            req.session.postsChanged = true;
 
             res.json({message: "Post deleted successfully!"})
         })
@@ -149,9 +143,62 @@ export const like = (req: Request, res: Response) => {
             db.query(query, (err: MysqlError) => {
                 if(err) throw err;
 
-                req.session.postsChanged = true;
+                if(req.post.profile_id !== req.profile.id){
+                    query = `
+                        SELECT id, interactions FROM notifications 
+                        WHERE profile_id=${req.post.profile_id} AND post_id=${req.post.id}
+                    `;
+
+                    db.query(query, (err, result) => {
+                        if(err) throw err;
+
+                        if(result.length === 0){
+                            query = `SELECT id FROM posts_liked WHERE post_id=${req.post.id}`;
+
+                            db.query(query, (err: MysqlError, result) => {
+                                if(err) throw err;
+
+                                const interactions = result.length;
+
+                                let notification = "";
+
+                                if(interactions === 1){
+                                    notification = `${req.user.username} like your post!`;
+                                }else{
+                                    notification = `${req.user.username} and ${interactions - 1} ${"other" + (interactions - 1 > 1 ? "s" : "")} like your post!`
+                                }
+
+                                query = `
+                                        INSERT INTO notifications(notification_type, notification, profile_id, sender_profile_id, post_id)
+                                        VALUES('like', '${notification}', ${req.post.profile_id}, ${req.profile.id}, ${req.post.id})
+                                    `
+
+                                db.query(query, (err) => {
+                                    if(err) throw err;
     
-                res.json({message: "Post liked"})
+                                    res.json({message: "Post liked"})
+                                })
+                            })
+                        }else{
+                            let notificationObj = result[0]
+                            let moreUsersStr = notificationObj.interactions === 0 ? " " : ` ${notificationObj.interactions} other` + (notificationObj.interactions > 1 ? "s " : " ")
+                            let notification = `${req.user.username} and${notificationObj.interactions} ${moreUsersStr}like your post!`
+
+                            query = `
+                                UPDATE notifications SET interactions=${notificationObj.interactions + 1}, 
+                                notification='${notification}' WHERE id=${notificationObj.id}
+                            `
+
+                            db.query(query, (err) => {
+                                if(err) throw err;
+
+                                res.json({message: "Post liked"})
+                            })
+                        }
+                    })
+                }else{
+                    res.json({message: "Post liked"})
+                }
             })
         })
         
@@ -169,7 +216,7 @@ export const unlike = (req: Request, res: Response) => {
             if(err) throw err;
 
             if(result.length === 0){
-                return res.status(400).json({error: "Comment isn't liked"});
+                return res.status(400).json({error: "Post isn't liked"});
             }
 
             query = `CALL hitLikeButton(FALSE, 'post', ${req.post.likes}, ${req.post.id}, NULL, NULL, ${req.profile.id})`;
@@ -177,9 +224,29 @@ export const unlike = (req: Request, res: Response) => {
             db.query(query, (err: MysqlError) => {
                 if(err) throw err;
 
-                req.session.postsChanged = true;
-    
-                res.json({message: "Post unliked"})
+                if(req.post.profile_id !== req.profile.id){
+                    query = `SELECT id, interactions FROM notifications WHERE profile_id=${req.post.profile_id} AND post_id=${req.post.id}`
+
+                    db.query(query, (err,result) => {
+                        if(err) throw err;
+
+                        if(result.length === 0){
+                            return res.status(404).json({error: "Notification not found"})
+                        }
+                        
+                        let notification = result[0];
+
+                        query = `UPDATE notifications SET interactions=${notification.interactions - 1} WHERE id=${notification.id}`
+
+                        db.query(query, (err) => {
+                            if(err) throw err;
+
+                            res.json({message: "Post unliked"})
+                        })
+                    })
+                }else{
+                    res.json({message: "Post unliked"})
+                }
             })
         })
     } catch (err) {

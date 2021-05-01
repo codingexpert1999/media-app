@@ -18,8 +18,6 @@ declare module 'express-session' {
       user: User;
       profile: Profile;
       accessToken: string;
-      posts: Post[];
-      postsChanged: boolean;
     }
 }
 

@@ -82,13 +82,24 @@ CREATE TABLE notifications(
 	id INT AUTO_INCREMENT PRIMARY KEY,
     notification_type ENUM('friend_request', 'accepted_request', 'like', 'comment'),
     notification VARCHAR(255),
+    interactions INT DEFAULT 1,
+    seen BOOL DEFAULT FALSE,
+    post_id INT NULL,
+    comment_id INT NULL,
+    answer_id INT NULL,
     profile_id INT,
     sender_profile_id INT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     KEY profileID_notification(profile_id),
     CONSTRAINT profileID_notification FOREIGN KEY(profile_id) REFERENCES profiles(id) ON UPDATE CASCADE ON DELETE CASCADE,
     KEY profileID2_notification(sender_profile_id),
-    CONSTRAINT profileID2_notification FOREIGN KEY(sender_profile_id) REFERENCES profiles(id) ON UPDATE CASCADE ON DELETE CASCADE
+    CONSTRAINT profileID2_notification FOREIGN KEY(sender_profile_id) REFERENCES profiles(id) ON UPDATE CASCADE ON DELETE CASCADE,
+    KEY interacted_postID(post_id),
+    CONSTRAINT interacted_postID FOREIGN KEY(post_id) REFERENCES posts(id) ON UPDATE CASCADE ON DELETE CASCADE,
+    KEY interacted_commentID(comment_id),
+    CONSTRAINT interacted_commentID FOREIGN KEY(comment_id) REFERENCES comments(id) ON UPDATE CASCADE ON DELETE CASCADE,
+    KEY interacted_answerID(answer_id),
+    CONSTRAINT interacted_answerID FOREIGN KEY(answer_id) REFERENCES answers(id) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
 CREATE TABLE posts_liked(
@@ -146,14 +157,19 @@ CREATE PROCEDURE acceptFriendRequest(
 BEGIN
 	DELETE FROM friend_requests as fr WHERE fr.sender_profile_id=sender_profile_id AND fr.receiver_profile_id=receiver_profile_id;
     INSERT INTO friends(my_profile_id, friend_profile_id) VALUES(receiver_profile_id, sender_profile_id);
+    
     SET @profile_friends = 0;
     SELECT @profile_friends := friends FROM profiles WHERE id=receiver_profile_id;
     UPDATE profiles SET friends=@profile_friends + 1 WHERE id=receiver_profile_id;
+    
     SET @profile_friends = 0;
     SELECT @profile_friends := friends FROM profiles WHERE id=sender_profile_id;
     UPDATE profiles SET friends=@profile_friends + 1 WHERE id=sender_profile_id;
+    
     INSERT INTO notifications(notification_type, notification, profile_id, sender_profile_id) 
     VALUES('accepted_request', CONCAT(username, ' ', 'accepted your friend request!'), sender_profile_id, receiver_profile_id);
+    
+    DELETE FROM notifications WHERE profile_id=receiver_profile_id AND sender_profile_id=sender_profile_id AND notification_type='friend_request';
 END $$
 DELIMITER ;
 
@@ -213,14 +229,22 @@ SELECT * FROM comments_liked;
 SELECT * FROM answers_liked;
 
 -- SELECT posts updated query
-SELECT p.id, p.post_text, p.post_image, p.post_video, p.likes, p.created_at, p.profile_id, u.username FROM posts as p 
-LEFT JOIN friends as f ON f.my_profile_id=2 INNER JOIN profiles as prof ON prof.id=p.profile_id INNER JOIN users as u ON u.id=prof.user_id
-WHERE p.profile_id=2 OR p.profile_id=f.friend_profile_id ORDER BY p.created_at DESC LIMIT 0, 10;
+SELECT DISTINCT(p.id), p.post_text, p.post_image, p.post_video, p.likes, p.created_at, p.profile_id, u.username FROM posts as p 
+LEFT JOIN friends as f ON f.my_profile_id=2 OR f.friend_profile_id=2
+INNER JOIN profiles as prof ON prof.id=p.profile_id 
+INNER JOIN users as u ON u.id=prof.user_id
+WHERE p.profile_id=2 OR (p.profile_id=f.friend_profile_id AND f.friend_profile_id!=2) 
+OR (p.profile_id=f.my_profile_id AND f.my_profile_id!=2) ORDER BY p.created_at DESC LIMIT 0, 10;
 
 SELECT c.id, c.comment_text, c.likes, c.created_at, c.profile_id, u.username FROM comments as c 
 INNER JOIN profiles as p ON c.profile_id=p.id INNER JOIN users as u ON u.id=p.user_id
-WHERE c.post_id=4 ORDER BY p.created_at DESC LIMIT 0, 3;
+WHERE c.post_id=4 ORDER BY c.created_at DESC LIMIT 0, 3;
 
 SELECT a.id, a.answer_text, a.likes, a.created_at, a.profile_id, u.username FROM answers as a 
 INNER JOIN profiles as p ON a.profile_id=p.id INNER JOIN users as u ON u.id=p.user_id
-WHERE a.comment_id=4 ORDER BY p.created_at DESC LIMIT 0, 3;
+WHERE a.comment_id=4 ORDER BY a.created_at DESC LIMIT 0, 3;
+
+SELECT f.id, f.my_profile_id, f.friend_profile_id, u.username FROM friends AS f 
+INNER JOIN profiles AS p ON (f.my_profile_id=p.id OR f.friend_profile_id=p.id)
+INNER JOIN users AS u ON u.id=p.user_id
+WHERE (f.my_profile_id=2 OR f.friend_profile_id=2) AND username!='mike12';

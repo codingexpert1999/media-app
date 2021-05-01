@@ -1,13 +1,20 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { openModal } from '../../actions/layoutActions';
 import { clearMatches } from '../../actions/profileActions';
 import { State } from '../../interfaces';
 
-const SideNavLeft = (props: {setShowSearchProfile: Function}) => {
+const SideNavLeft = (props: {setShowSearchProfile: Function; setShowNotifications: Function;}) => {
     const dispatch = useDispatch();
 
+    const {notifications} = useSelector((state:State) => state.profile);
     const {modalType} = useSelector((state:State) => state.layout);
+
+    const [unseenNotifications, setUnseenNotifications] = useState(notifications.filter(notification => notification.seen === 0).length)
+
+    useEffect(() => {
+        setUnseenNotifications(notifications.filter(notification => notification.seen === 0).length)
+    }, [notifications])
 
     return (
         <ul className="sidenav sidenav-left shadow">
@@ -28,8 +35,13 @@ const SideNavLeft = (props: {setShowSearchProfile: Function}) => {
                     Search Profile
                 </button>
             </li>
-            <li className="clickable">Notifications <i className="fas fa-bell"></i></li>
-            <li className="clickable">Messages <i className="fas fa-inbox"></i></li>
+            <li 
+                className="clickable" 
+                onClick={() => props.setShowNotifications(true)}
+            >
+                Notifications <i className="fas fa-bell"></i> {unseenNotifications > 0 && <span>{unseenNotifications}</span>}
+            </li>
+            <li className="clickable">Messages <i className="fas fa-inbox"></i> <span>35</span></li>
         </ul>
     )
 }

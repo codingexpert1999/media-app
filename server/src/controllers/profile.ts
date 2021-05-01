@@ -53,7 +53,16 @@ export const sendFriendRequest = (req: Request, res: Response) => {
                 db.query(query, (err: MysqlError) => {
                     if(err) throw err;
 
-                    res.json({message: "Request sended successfully!"});
+                    query = `
+                        INSERT INTO notifications(notification_type, notification, profile_id, sender_profile_id) 
+                        VALUES('friend_request', '${req.user.username} send you a friend request!', ${receiverProfileId}, ${req.profile.id})
+                    `
+
+                    db.query(query, (err: MysqlError) => {
+                        if(err) throw err;
+
+                        res.json({message: "Request sended successfully!"});
+                    })
                 })
             }) 
         })
@@ -111,14 +120,15 @@ export const cancelFriendRequest = (req: Request, res: Response) => {
 export const getNotifications = (req: Request, res: Response) => {
     try {
         let query = `
-            SELECT id, notification_type, notification, sender_profile_id, created_at 
-            FROM notifications WHERE profile_id=${req.profile.id}
+            SELECT n.id, n.notification_type, n.notification, n.sender_profile_id, n.seen, n.created_at, p.profile_image
+            FROM notifications AS n INNER JOIN profiles AS p ON p.id=n.sender_profile_id
+            WHERE n.profile_id=${req.profile.id} ORDER BY created_at DESC
         `;
 
         db.query(query, (err: MysqlError, result) => {
             if(err) throw err;
 
-            res.json(result);
+            res.json(result)
         })
     } catch (err) {
         console.log(err);
@@ -221,10 +231,6 @@ export const fetchProfilePosts =(req: Request, res: Response) => {
     try {
         let profileId = parseInt(req.params.currentProfile);
 
-        if(req.session.profile!.id === profileId && req.session.posts && req.session.postsChanged === false){
-            return res.json(req.session.posts);
-        }
-
         let query = `
             SELECT p.id, p.post_text, p.post_image, p.post_video, p.likes, p.created_at, u.username FROM posts as p 
             INNER JOIN profiles as prof ON prof.id=p.profile_id INNER JOIN users as u ON u.id=prof.user_id
@@ -254,11 +260,6 @@ export const fetchProfilePosts =(req: Request, res: Response) => {
 
                     posts[i].comments[j].answers = await getAsyncMysqlResult(query);
                 }
-            }
-
-            if(req.session.profile!.id === profileId){
-                req.session.posts = posts;
-                req.session.postsChanged = false;
             }
 
             res.json(posts);
@@ -373,6 +374,38 @@ export const removeFriend = (req: Request, res: Response) => {
         })
     } catch (err) {
         console.log(err)
+        res.status(500).json({error: err.message})
+    }
+}
+
+export const readNotifications = (req: Request, res: Response) => {
+    try {
+        let query = `UPDATE notifications SET seen=TRUE WHERE profile_id=${req.profile.id}`;
+
+        db.query(query, (err: MysqlError) => {
+            if(err) throw err;
+
+            res.json({message: "All your notifications are set to seen!"})
+        })
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({error: err.message});
+    }
+}
+
+export const deleteNotification = (req: Request, res: Response) => {
+    try {
+        const notificationId = parseInt(req.params.notificationId);
+
+        let query = `DELETE FROM notifications WHERE id=${notificationId}`;
+
+        db.query(query, (err) => {
+            if(err) throw err;
+
+            res.json({message: "Notification deleted successfully!"});
+        })
+    } catch (err) {
+        console.log(err);
         res.status(500).json({error: err.message})
     }
 }
