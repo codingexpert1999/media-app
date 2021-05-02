@@ -186,7 +186,7 @@ export const like = (req: Request, res: Response) => {
 
                             query = `
                                 UPDATE notifications SET interactions=${notificationObj.interactions + 1}, 
-                                notification='${notification}' WHERE id=${notificationObj.id}
+                                notification='${notification}', seen=FALSE WHERE id=${notificationObj.id}
                             `
 
                             db.query(query, (err) => {
