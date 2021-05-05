@@ -109,6 +109,9 @@ export const cancelFriendRequest = (req: Request, res: Response) => {
         db.query(query, (err: MysqlError) => {
             if(err) throw err;
 
+            query = `DELETE FROM notifications WHERE profile_id=${receiverProfileId} 
+            AND sender_profile_id=${req.profile.id} AND notifications_type='friend_request'`
+
             res.json({message: "Request deleted successfully"})
         })
     } catch (err) {
