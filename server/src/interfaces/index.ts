@@ -57,3 +57,13 @@ export interface Friendship{
 export interface JwtError{
     error: string;
 }
+
+export interface Notification{
+    id: number;
+    notification_type: string;
+    notification: string;
+    sender_profile_id: number;
+    seen: number;
+    created_at: string;
+    profile_image: string;
+}

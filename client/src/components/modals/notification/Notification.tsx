@@ -4,6 +4,7 @@ import { acceptFriendRequest, deleteNotification } from '../../../actions/profil
 import { DELETE_NOTIFICATION } from '../../../actionTypes/profileActionTypes';
 import { State } from '../../../interfaces';
 import { Notification as Notif } from '../../../interfaces/profile'
+import Moment from 'react-moment'
 
 const Notification = (props: {notification: Notif}) => {
     const dispatch = useDispatch();
@@ -40,7 +41,10 @@ const Notification = (props: {notification: Notif}) => {
             <img src={props.notification.profile_image} alt="user Default"/>
 
             <div className="notification-message">
-                <p><strong>{username}</strong> {notificationMessage}</p>
+                <div>
+                    <span><Moment format="DD/MM/YYY hh:mm:ss">{props.notification.created_at}</Moment></span>
+                    <p><strong>{username}</strong> {notificationMessage}</p>
+                </div>
 
                 {
                     props.notification.notification_type === "friend_request" && 

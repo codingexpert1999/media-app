@@ -2,8 +2,9 @@ import {MysqlError} from 'mysql';
 import {Request, Response} from 'express';
 import db from '../config/db';
 import {validationResult} from 'express-validator';
-import { Friendship } from '../interfaces';
+import { Friendship, Notification } from '../interfaces';
 import { getAsyncMysqlResult } from '../helper';
+import redisClient from '../config/redis'
 
 export const fetch = (req: Request, res: Response) => {
     try {
@@ -131,7 +132,73 @@ export const getNotifications = (req: Request, res: Response) => {
         db.query(query, (err: MysqlError, result) => {
             if(err) throw err;
 
+            let notifications = result.filter((notification: Notification) => notification.seen === 0);
+            redisClient.setex(req.user.id + "-notifications", 3600 * 2, JSON.stringify(notifications));
+
             res.json(result)
+        })
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({error: err.message});
+    }
+}
+
+let count = 0;
+export const getNewNotifications = (req: Request, res: Response) => {
+    // LONG POLLING
+    try {
+        count++;
+
+        if(count === 10){
+            count = 0;
+            return res.json({message: "No data. Request ended"})
+        }
+
+        let query = `
+            SELECT n.id, n.notification_type, n.notification, n.sender_profile_id, n.seen, n.created_at, p.profile_image
+            FROM notifications AS n INNER JOIN profiles AS p ON p.id=n.sender_profile_id
+            WHERE n.seen=0 AND n.profile_id=${req.profile.id} ORDER BY created_at ASC
+        `;
+
+        db.query(query, (err: MysqlError, result) => {
+            if(err) throw err;
+
+            if(result.length > 0){
+                if(!redisClient.get(req.user.id + "-notifications")){
+                    redisClient.setex(req.user.id + "-notifications", 3600 * 2, JSON.stringify(result));
+                    count = 0;
+                    return res.json(result)
+                }else{
+                    redisClient.get(req.user.id + "-notifications", (err, reply) => {
+                        if(err) throw err;
+
+                        let notifications = [];
+                        let prevNotifications: Notification[] = reply ? JSON.parse(reply) : [];
+        
+                        for(let i = 0; i < result.length; i++){
+                            let notif = prevNotifications.find(notification => notification.id === result[i].id);
+        
+                            if(!notif){
+                                notifications.push(result[i])
+                            }else{
+                                if(notif.notification !== result[i].notification){
+                                    notifications.push(result[i])
+                                }
+                            }
+                        }
+        
+                        if(notifications.length > 0){
+                            redisClient.setex(req.user.id + "-notifications", 3600 * 2, JSON.stringify([...notifications, ...prevNotifications]));
+                            count = 0;
+                            return res.json(notifications)
+                        }else{
+                            setTimeout(() => { getNewNotifications(req, res) }, 5000);
+                        }
+                    })
+                }
+            }else{
+                setTimeout(() => { getNewNotifications(req, res) }, 5000);
+            }
         })
     } catch (err) {
         console.log(err);
@@ -387,6 +454,10 @@ export const readNotifications = (req: Request, res: Response) => {
 
         db.query(query, (err: MysqlError) => {
             if(err) throw err;
+
+            if(redisClient.get(req.user.id + "-notifications")){
+                redisClient.del(req.user.id + "-notifications")
+            }
 
             res.json({message: "All your notifications are set to seen!"})
         })

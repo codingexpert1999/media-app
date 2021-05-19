@@ -12,6 +12,10 @@ import CreateAnswer from '../modals/CreateAnswer'
 import SearchProfile from '../modals/SearchProfile'
 import SearchedProfileResults from '../profile/SearchedProfileResults'
 import Notifications from '../modals/notification/Notifications'
+import axios from 'axios'
+import { API } from '../../helper'
+import { toast } from 'react-toastify'
+import { GET_NEW_NOTIFICATIONS } from '../../actionTypes/profileActionTypes'
 
 const Dashboard = () => {
     const {user} = useSelector((state:State) => state.user) 
@@ -21,6 +25,23 @@ const Dashboard = () => {
 
     const [showSearchProfile, setShowSearchProfile] = useState(false);
     const [showNotifications, setShowNotifications] = useState(false);
+
+    const longPolling = () => {
+        console.log(user.id, profile.id)
+        axios
+        .get(`${API}/profile/new_notifications/${user.id}/${profile.id}`, {withCredentials: true})
+        .then(res => {
+            if(!res.data.message){
+                dispatch({type: GET_NEW_NOTIFICATIONS, payload: {notifications: res.data}})
+            }
+
+            longPolling();
+        })
+        .catch(err => {
+            toast.error(err.message)
+            longPolling()
+        })
+    }
 
     useEffect(() => {
         dispatch(getProfile(user.id));
@@ -35,6 +56,8 @@ const Dashboard = () => {
             dispatch(getFriendRequests(user.id, profile.id));
             dispatch(getSendedFriendRequests(user.id, profile.id));
             dispatch(getNotifications(user.id, profile.id));
+
+            longPolling()
         }
     }, [profile, dispatch])
 

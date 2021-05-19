@@ -642,6 +642,11 @@ footer{
                 width: calc(100% - 90px);
                 position: relative;
 
+                span{
+                    font-size: .9rem;
+                    color: #aaa;
+                }
+
                 p{
                     margin-bottom: 0;
                     width: 90%;

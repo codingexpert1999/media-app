@@ -15,7 +15,8 @@ import {
     CANCEL_FRIEND_REQUEST,
     ACCEPT_FRIEND_REQUEST,
     READ_NOTIFICATIONS,
-    DELETE_NOTIFICATION
+    DELETE_NOTIFICATION,
+    GET_NEW_NOTIFICATIONS
 } from "../actionTypes/profileActionTypes";
 import { LOG_OUT } from "../actionTypes/userActionTypes";
 import { ProfilePayload, ProfileState } from "../interfaces/profile";
@@ -108,6 +109,19 @@ const profileReducer = (state=initialState, action: {type:string, payload: Profi
             return {...state, notifications}
         case DELETE_NOTIFICATION:
             return {...state, notifications: notifications.filter(notification => notification.id !== payload.notificationId)}
+        case GET_NEW_NOTIFICATIONS:
+            let newNotifications = [...notifications]
+            payload.notifications.forEach(notification => {
+                let notif = newNotifications.find(n => n.id === notification.id);
+
+                if(notif){
+                    notif.notification = notification.notification;
+                }else{
+                    newNotifications.unshift(notification)
+                }
+            })
+
+            return {...state, notifications: newNotifications}
         default:
             return state;
     }

@@ -15,7 +15,8 @@ import {
     cancelFriendRequest,
     removeFriend,
     readNotifications,
-    deleteNotification
+    deleteNotification,
+    getNewNotifications
 } from '../controllers/profile';
 import {isAuthorized, userById, profileById} from '../middlewares/user'
 import {check} from 'express-validator';
@@ -25,6 +26,7 @@ const router = Router();
 router.get("/profile/:userId", isAuthorized, fetch);
 
 router.get("/profile/notifications/:userId/:profileId", isAuthorized, getNotifications);
+router.get("/profile/new_notifications/:userId/:profileId", isAuthorized, getNewNotifications);
 
 router.get("/profile/friend_requests/:userId/:profileId", isAuthorized, getFriendRequests);
 
