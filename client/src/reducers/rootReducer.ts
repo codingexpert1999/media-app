@@ -1,4 +1,5 @@
 import {combineReducers} from "redux";
+import conversationReducer from "./conversationReducer";
 import layoutReducer from "./layoutReducer";
 import postReducer from "./postReducer";
 import profileReducer from "./profileReducer";
@@ -8,7 +9,8 @@ const rootReducer = combineReducers({
     layout: layoutReducer,
     user: userReducer,
     profile: profileReducer,
-    post: postReducer
+    post: postReducer,
+    conversation: conversationReducer
 });
 
 export default rootReducer;

@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
+import { closeModal } from '../../../actions/layoutActions'
 import { readNotifications } from '../../../actions/profileActions'
 import { State } from '../../../interfaces'
 import Notification from './Notification'
 
-const Notifications = (props: {setShowNotifications: Function}) => {
+const Notifications = () => {
     const dispatch = useDispatch();
 
     const {user} = useSelector((state: State) => state.user);
@@ -28,7 +29,7 @@ const Notifications = (props: {setShowNotifications: Function}) => {
                 <div className="modal-content">
                     <div className="modal-header">
                         <h5 className="modal-title">Notifications</h5>
-                        <button type="button" className="btn-close" onClick={() => props.setShowNotifications(false)}></button>
+                        <button type="button" className="btn-close" onClick={() => dispatch(closeModal())}></button>
                     </div>
 
                     <div className="modal-body">

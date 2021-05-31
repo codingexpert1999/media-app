@@ -16,15 +16,18 @@ import axios from 'axios'
 import { API } from '../../helper'
 import { toast } from 'react-toastify'
 import { GET_NEW_NOTIFICATIONS } from '../../actionTypes/profileActionTypes'
+import Conversation from '../messages/Conversation'
+import Messages from '../modals/messages/Messages'
 
 const Dashboard = () => {
     const {user} = useSelector((state:State) => state.user) 
     const {profile, showSearchingResults} = useSelector((state:State) => state.profile)
-    const {showModal, modalType} = useSelector((state:State) => state.layout) 
+    const {showModal, modalType} = useSelector((state:State) => state.layout)
+    const {showConversation} = useSelector((state: State) => state.conversation) 
+
     const dispatch = useDispatch();
 
     const [showSearchProfile, setShowSearchProfile] = useState(false);
-    const [showNotifications, setShowNotifications] = useState(false);
 
     const longPolling = () => {
         console.log(user.id, profile.id)
@@ -57,14 +60,14 @@ const Dashboard = () => {
             dispatch(getSendedFriendRequests(user.id, profile.id));
             dispatch(getNotifications(user.id, profile.id));
 
-            longPolling()
+            // longPolling()
         }
     }, [profile, dispatch])
 
     return (
         <div className="dashboard container">
             <React.Fragment>
-                <SideNavLeft setShowSearchProfile={setShowSearchProfile} setShowNotifications={setShowNotifications}/>
+                <SideNavLeft/>
 
                 <SideNavRight/>
             </React.Fragment>
@@ -75,13 +78,17 @@ const Dashboard = () => {
 
             {showModal && modalType === "answer" && <CreateAnswer/>}
 
-            {showSearchProfile && <SearchProfile setShowSearchProfile={setShowSearchProfile}/>}
+            {showModal && modalType === "search-profile" && <SearchProfile />}
+
+            {showModal && modalType === "notifications" && <Notifications/>}
+
+            {showModal && modalType === "messages" && <Messages/>}
 
             {showSearchingResults && <SearchedProfileResults/>}
 
             {!showSearchingResults && <Posts/>}
 
-            {showNotifications && <Notifications setShowNotifications={setShowNotifications}/>}
+            {showConversation && <Conversation />}
         </div>
     )
 }

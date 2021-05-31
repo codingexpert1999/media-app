@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
+import { closeModal } from '../../actions/layoutActions';
 import { clearMatches, findUsernameMatches, getSearchingResults } from '../../actions/profileActions';
 import { State } from '../../interfaces';
 
-const SearchProfile = (props: {setShowSearchProfile: Function}) => {
+const SearchProfile = () => {
     const dispatch = useDispatch();
 
     const {user} = useSelector((state: State) => state.user);
@@ -48,7 +49,7 @@ const SearchProfile = (props: {setShowSearchProfile: Function}) => {
 
         dispatch(getSearchingResults(user.id, profile.id, searchedProfileUsername));
 
-        props.setShowSearchProfile(false);
+        dispatch(closeModal());
     }
 
     useEffect(() => {
@@ -70,7 +71,7 @@ const SearchProfile = (props: {setShowSearchProfile: Function}) => {
                         <i className="fas fa-search"></i>
                     </button>
 
-                    <span onClick={() => props.setShowSearchProfile(false)}>&#x2715;</span>
+                    <span onClick={() => dispatch(closeModal())}>&#x2715;</span>
 
                     <ul className="autocomplete">
                         {

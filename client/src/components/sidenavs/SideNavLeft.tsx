@@ -4,7 +4,7 @@ import { openModal } from '../../actions/layoutActions';
 import { clearMatches } from '../../actions/profileActions';
 import { State } from '../../interfaces';
 
-const SideNavLeft = (props: {setShowSearchProfile: Function; setShowNotifications: Function;}) => {
+const SideNavLeft = () => {
     const dispatch = useDispatch();
 
     const {notifications} = useSelector((state:State) => state.profile);
@@ -30,18 +30,23 @@ const SideNavLeft = (props: {setShowSearchProfile: Function; setShowNotification
             <li>
                 <button className="btn btn-search-profile btn-outline-success" onClick={() => {
                     dispatch(clearMatches())
-                    props.setShowSearchProfile(true)
+                    dispatch(openModal('search-profile'))
                 }}>
                     Search Profile
                 </button>
             </li>
             <li 
                 className="clickable" 
-                onClick={() => props.setShowNotifications(true)}
+                onClick={() => dispatch(openModal("notifications"))}
             >
                 Notifications <i className="fas fa-bell"></i> {unseenNotifications > 0 && <span>{unseenNotifications}</span>}
             </li>
-            <li className="clickable">Messages <i className="fas fa-inbox"></i> <span>35</span></li>
+            <li 
+                className="clickable"
+                onClick={() => dispatch(openModal("messages"))}
+            >
+                Messages <i className="fas fa-inbox"></i> <span>35</span>
+            </li>
         </ul>
     )
 }

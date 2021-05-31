@@ -122,6 +122,7 @@ footer{
         border: 1px solid rgba(0,0,0,.125);
         border-radius: 5px;
         padding: 15px 0 !important;
+        z-index: 999;
 
         li{
             margin-bottom: 15px;
@@ -155,7 +156,6 @@ footer{
         }
 
         .friends{
-            overflow-y: scroll;
             max-height: 300px;
             list-style: none;
             padding: 0;
@@ -170,7 +170,12 @@ footer{
 
             .friend{
                 cursor: pointer;
-                
+                position: relative;
+
+                &:hover{
+                    background: #f9f9f9;
+                }
+
                 & > span{
                     position: relative;
                     margin-right: 10px;
@@ -180,15 +185,47 @@ footer{
                         border-radius: 50%;
                     }
     
-                    .dot{
+                    .user-activity{
                         position: absolute;
-                        display: inline-block;
                         height: 9px;
                         width: 9px;
                         border-radius: 50%;
-                        background: green;
                         right: 5px;
                         bottom: -10px;
+                        background: var(--bs-danger);
+
+                        &.active{
+                            background: var(--bs-success);
+                        }
+                    }
+                }
+
+                .options{
+                    position: absolute;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    align-items: center;
+                    background: white;
+                    color: #333;
+                    top: 0;
+                    left: -100px;
+                    border-radius: 5px;
+                    z-index: 100;
+    
+                    span{
+                        position: relative;
+                        z-index: 100;
+                        padding: 10px 15px;
+                        display: block;
+                        width: 100%;
+                        text-align: center;
+    
+                        &:hover{
+                            cursor: pointer;
+                            background: var(--bs-primary);
+                            color: white;
+                        }
                     }
                 }
             }
@@ -333,6 +370,7 @@ footer{
         right: -110px;
         width: fit-content;
         background: white;
+        z-index: 100000;
 
         li{
             display: flex;
@@ -686,6 +724,254 @@ footer{
             font-size: 1.1rem;
         }
     }
+}
+
+.conversation{
+    position: fixed;
+    bottom: 0;
+    right: 15%;
+    background: white;
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+    overflow: hidden;
+    width: 350px;
+
+    .conversation-container{
+        position: relative;
+
+        .conversation-header{
+            color: white;
+            width: 100%;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            background: var(--bs-primary);
+            position: relative;
+    
+            img{
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                margin-right: 10px;
+            }
+
+            .user{
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+
+                .username{
+                    font-size: 1.1rem;
+                }
+
+                .user-activity{
+                    display: flex;
+                    align-items: center;
+                    font-size: .8rem;
+
+                    &::before{
+                        content: "";
+                        display: block;
+                        margin-right: 5px;
+                        width: 8px;
+                        height: 8px;
+                        border-radius: 50%;
+                        background: var(--bs-danger);
+                    }
+
+                    &.active::before {
+                        background: var(--bs-teal);
+                    }
+                }
+            }
+
+            .close-conversation{
+                position: absolute;
+                right: 20px;
+                top: 50%;
+                transform: translateY(-50%);
+                font-size: 1.3rem;
+                cursor: pointer;
+            }
+        }
+    
+        .conversation-body{
+            width: 100%;
+            padding: 10px 20px;
+            height: 300px;
+            max-height: 300px;
+            overflow-y: auto;
+    
+            
+    
+            .message{
+                padding: 10px;
+                letter-spacing: 0.4px;
+                line-height: 1.4;
+                max-width: 70%;
+                border-radius: 5px;
+    
+                &.sended{
+                    background: var(--bs-primary);
+                    color: white;
+                    margin-left: auto;
+                }
+    
+                &.received{
+                    background: #f4f4f4;
+                    color: #333;
+                    margin-right: auto;
+                }
+            }
+        }
+    
+        .conversation-bottom{
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-top: 1px solid #ccc;
+            position: relative;
+    
+            .message-input{
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                position: relative;
+                width: 87%;
+    
+                textarea{
+                    resize: none;
+                    border: none;
+                    display: block;
+                    width: 65%;
+                    background: #f4f4f4;
+                    color: #333;
+                    outline: none;
+                    padding: 5px 10px;
+                    padding-right: 40px;
+                    border-radius: 25px;
+                    transition: width 300ms ease;
+                    position: relative;
+                    z-index: 19;
+        
+                    &.typing{
+                        width: 100%;
+                    }
+                }
+    
+                i{
+                    position: absolute;
+                    color: #333;
+                    bottom: 5px;
+                    right: 110px;
+                    transition: right 300ms ease;
+    
+                    &.typing{
+                        right: 15px !important;
+                    }
+                }
+            }
+    
+            i{
+                color: var(--bs-primary);
+                font-size: 1.5rem;
+                cursor: pointer;
+                z-index: 20;
+            }
+        }
+
+        .emojis{
+            position: absolute;
+            top: 50px;
+            left: 35px;
+            height: 220px;
+            width: 180px;
+        }
+    }
+}
+
+.messages{
+
+    .modal-body{
+        max-height: 400px;
+        overflow-y: auto;
+        padding: 0;
+
+        &::-webkit-scrollbar{
+            width: 8px;
+        }
+        &::-webkit-scrollbar-thumb{
+            background: #777;
+            border-radius: 5px;
+        }
+
+        .messages-list{
+            list-style: none;
+            padding: 0;
+            margin-bottom: 0;
+    
+            .message{
+                height: fit-content;
+                padding: 10px 20px;
+                border-bottom: 1px solid #ccc;
+
+                &:hover{
+                    cursor: pointer;
+                    background: #f4f4f4;
+                }
+    
+                &:last-child{
+                    border-bottom: none;
+                }
+    
+                .user{
+                    display: flex;
+                    align-items: center;
+                    margin-bottom: 10px;
+                    position: relative;
+
+                    img{
+                        width: 35px;
+                        height: 35px;
+                        border-radius: 50%;
+                        margin-right: 10px;
+                        position: relative;
+                    }
+    
+                    span{
+                        font-size: 1.1rem;
+                        color: #333;
+                    }
+
+                    .user-activity{
+                        position: absolute;
+                        display: block;
+                        width: 8px;
+                        height: 8px;
+                        border-radius: 50%;
+                        top: 25px;
+                        left: 25px;
+                        background: var(--bs-danger);
+
+                        &.active{
+                            background: var(--bs-success);
+                        }
+                    }
+                }
+    
+                p{
+                    margin-bottom: 0;
+                    font-weight: bold;
+
+                    &.seen{
+                        font-weight: 300;
+                    }
+                }
+            }
+        }
+    }
+
 }
 
 // Media Queries

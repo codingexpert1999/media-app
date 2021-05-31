@@ -1,13 +1,9 @@
 import React from 'react'
-import { useDispatch, useSelector } from 'react-redux'
-import { useHistory } from 'react-router';
-import { setCurrentProfileUsername } from '../../actions/profileActions';
+import { useSelector } from 'react-redux'
 import { State } from '../../interfaces'
+import FriendListItem from './FriendListItem';
 
 const SideNavRight = () => {
-    const dispatch = useDispatch();
-    const history = useHistory();
-
     const {friends} = useSelector((state: State) => state.profile);
 
     return (
@@ -16,19 +12,7 @@ const SideNavRight = () => {
 
             <ul className="friends">
                 {friends.map(friend => (
-                    <li 
-                        className="friend" key={friend.id} 
-                        onClick={() => {
-                            dispatch(setCurrentProfileUsername(friend.username))
-                            history.push(`/profile/${friend.friend_profile_id}`)
-                        }}
-                    >
-                        <span>
-                            <img src="/assets/user.png" className="img-fluid" alt="Default User"/>
-                            <span className="dot"></span>
-                        </span>
-                        {friend.username}
-                    </li>
+                    <FriendListItem key={friend.id} friend={friend} />
                 ))}
             </ul>
         </ul>

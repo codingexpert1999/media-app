@@ -1,3 +1,4 @@
+import { ConversationState } from "./conversation";
 import { LayoutState } from "./layout";
 import { PostState } from "./post";
 import { ProfileState } from "./profile";
@@ -8,4 +9,5 @@ export interface State{
     user: UserState;
     profile: ProfileState;
     post: PostState;
+    conversation: ConversationState;
 }
