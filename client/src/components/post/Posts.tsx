@@ -14,7 +14,7 @@ const Posts = () => {
 
             {loading && 
                 <div className="d-flex justify-content-center align-items-center loading">
-                    <div className="spinner-border" role="status">
+                    <div className="spinner-border">
                     </div>
                     <span>Loading...</span>
                 </div>

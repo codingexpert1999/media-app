@@ -8,12 +8,15 @@ import CreateAnswer from '../modals/CreateAnswer'
 import CreatePost from '../modals/CreatePost'
 import { openModal } from '../../actions/layoutActions'
 import RequestButton from './RequestButton'
+import { setShowConversation } from '../../actions/conversationActions'
+import Conversation from '../messages/Conversation'
 
 const Profile = () => {
     const dispatch = useDispatch();
     const {user} = useSelector((state:State) => state.user)
     const {loading} = useSelector((state: State) => state.post);
     const { profile, currentProfile } = useSelector((state:State) => state.profile)
+    const {showConversation} = useSelector((state: State) => state.conversation);
 
     const {showModal, modalType} = useSelector((state:State) => state.layout) 
 
@@ -101,6 +104,18 @@ const Profile = () => {
                         {!isCurrentProfile && 
                             <RequestButton profileId={currentProfile.id} />
                         }
+
+                        {
+                            !isCurrentProfile &&
+                            <button 
+                                className="btn btn-primary send-message-btn" 
+                                onClick={() => {
+                                    dispatch(setShowConversation(true))
+                                }}
+                            >
+                                Send Message <i className="fas fa-inbox"></i>
+                            </button>
+                        }
                     </div>
                 </div>
 
@@ -112,6 +127,8 @@ const Profile = () => {
 
                 {showModal && modalType === "answer" && <CreateAnswer/>}
             </div>}
+
+            {showConversation && <Conversation/>}
         </div>
     )
 }

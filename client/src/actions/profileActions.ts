@@ -22,7 +22,8 @@ import {
     CANCEL_FRIEND_REQUEST,
     REMOVE_FRIEND,
     READ_NOTIFICATIONS,
-    DELETE_NOTIFICATION
+    DELETE_NOTIFICATION,
+    CHANGE_USER_ACTIVITY,
 } from '../actionTypes/profileActionTypes';
 import { POSTS_LOADING } from '../actionTypes/postActionTypes';
 
@@ -273,6 +274,21 @@ export const deleteNotification = (userId: number, profileId: number, notificati
             dispatch({type: DELETE_NOTIFICATION, payload: {notificationId}});
         } catch (err) {
             toast.error("Notifications couldn't be updated!")
+        }
+    }
+}
+
+export const changeUserActivity = (userId: number, profileId: number, isActive: number) => {
+    return async (dispatch: Dispatch) => {
+        try {
+            const contentType = getContentType();
+            const body = getAxiosBody({isActive});
+
+            await axios.put(`${API}/profile/change_activity/${userId}/${profileId}`, body, {...contentType, withCredentials: true});
+
+            dispatch({type: CHANGE_USER_ACTIVITY, payload: {isActive}});
+        } catch (er) {
+            toast.error("User activity couldn't be changed");
         }
     }
 }

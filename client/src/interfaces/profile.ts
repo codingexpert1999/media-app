@@ -26,6 +26,7 @@ export interface ProfilePayload{
     receiverProfileId: number;
     senderProfileId: number;
     notificationId: number;
+    isActive: number;
 }
 
 export interface Profile{
@@ -36,6 +37,7 @@ export interface Profile{
     posts: number;
     status: string;
     username: string | null;
+    is_active: number;
 }
 
 export interface Notification{
@@ -62,6 +64,7 @@ export interface Friend{
     id: number;
     friend_profile_id: number;
     username: string;
+    is_active: number;
 }
 
 export interface SearchedProfile{

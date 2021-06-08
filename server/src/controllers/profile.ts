@@ -92,7 +92,15 @@ export const acceptFriendRequest = (req: Request, res: Response) => {
             db.query(query, (err: MysqlError) => {
                 if(err) throw err;
 
-                res.json({message: `You have accepted the friend request from profile with ID=${senderProfileId}`});
+                query = `
+                    INSERT INTO conversations(profile_1_id, profile_2_id) 
+                    VALUES(${req.profile.id}, ${senderProfileId})
+                `
+                db.query(query, (err: MysqlError) => {
+                    if(err) throw err;
+
+                    res.json({message: `You have accepted the friend request from profile with ID=${senderProfileId}`});
+                })
             })
         })
     } catch (err) {
@@ -133,7 +141,7 @@ export const getNotifications = (req: Request, res: Response) => {
             if(err) throw err;
 
             let notifications = result.filter((notification: Notification) => notification.seen === 0);
-            redisClient.setex(req.user.id + "-notifications", 3600 * 2, JSON.stringify(notifications));
+            redisClient.setex(req.profile.id + "-notifications", 3600 * 2, JSON.stringify(notifications));
 
             res.json(result)
         })
@@ -143,62 +151,72 @@ export const getNotifications = (req: Request, res: Response) => {
     }
 }
 
-let count = 0;
 export const getNewNotifications = (req: Request, res: Response) => {
     // LONG POLLING
     try {
-        count++;
+        let count = 0;
 
-        if(count === 10){
-            count = 0;
-            return res.json({message: "No data. Request ended"})
-        }
+        redisClient.get(`${req.profile.id}-reqCount`, (err, reply) => {
+            if(reply){
+                count = parseInt(reply);
+            }
 
-        let query = `
-            SELECT n.id, n.notification_type, n.notification, n.sender_profile_id, n.seen, n.created_at, p.profile_image
-            FROM notifications AS n INNER JOIN profiles AS p ON p.id=n.sender_profile_id
-            WHERE n.seen=0 AND n.profile_id=${req.profile.id} ORDER BY created_at ASC
-        `;
+            count++;
 
-        db.query(query, (err: MysqlError, result) => {
-            if(err) throw err;
+            if(count === 10){
+                count = 0;
+                redisClient.setex(`${req.profile.id}-reqCount`, 3600, JSON.stringify(count));
+                return res.json({message: "No data. Request ended"})
+            }
 
-            if(result.length > 0){
-                if(!redisClient.get(req.user.id + "-notifications")){
-                    redisClient.setex(req.user.id + "-notifications", 3600 * 2, JSON.stringify(result));
-                    count = 0;
-                    return res.json(result)
-                }else{
-                    redisClient.get(req.user.id + "-notifications", (err, reply) => {
-                        if(err) throw err;
+            redisClient.setex(`${req.profile.id}-reqCount`, 3600, JSON.stringify(count));
 
-                        let notifications = [];
-                        let prevNotifications: Notification[] = reply ? JSON.parse(reply) : [];
-        
-                        for(let i = 0; i < result.length; i++){
-                            let notif = prevNotifications.find(notification => notification.id === result[i].id);
-        
-                            if(!notif){
-                                notifications.push(result[i])
-                            }else{
-                                if(notif.notification !== result[i].notification){
+            let query = `
+                SELECT n.id, n.notification_type, n.notification, n.sender_profile_id, n.seen, n.created_at, p.profile_image
+                FROM notifications AS n INNER JOIN profiles AS p ON p.id=n.sender_profile_id
+                WHERE n.seen=0 AND n.profile_id=${req.profile.id} ORDER BY created_at ASC
+            `;
+
+            db.query(query, (err: MysqlError, result) => {
+                if(err) throw err;
+
+                if(result.length > 0){
+                    if(!redisClient.get(req.profile.id + "-notifications")){
+                        redisClient.setex(req.profile.id + "-notifications", 3600 * 2, JSON.stringify(result));
+                        count = 0;
+                        return res.json(result)
+                    }else{
+                        redisClient.get(req.profile.id + "-notifications", (err, reply) => {
+                            if(err) throw err;
+
+                            let notifications = [];
+                            let prevNotifications: Notification[] = reply ? JSON.parse(reply) : [];
+            
+                            for(let i = 0; i < result.length; i++){
+                                let notif = prevNotifications.find(notification => notification.id === result[i].id);
+            
+                                if(!notif){
                                     notifications.push(result[i])
+                                }else{
+                                    if(notif.notification !== result[i].notification){
+                                        notifications.push(result[i])
+                                    }
                                 }
                             }
-                        }
-        
-                        if(notifications.length > 0){
-                            redisClient.setex(req.user.id + "-notifications", 3600 * 2, JSON.stringify([...notifications, ...prevNotifications]));
-                            count = 0;
-                            return res.json(notifications)
-                        }else{
-                            setTimeout(() => { getNewNotifications(req, res) }, 5000);
-                        }
-                    })
+            
+                            if(notifications.length > 0){
+                                redisClient.setex(req.profile.id + "-notifications", 3600 * 2, JSON.stringify([...notifications, ...prevNotifications]));
+                                count = 0;
+                                return res.json(notifications)
+                            }else{
+                                setTimeout(() => { getNewNotifications(req, res) }, 5000);
+                            }
+                        })
+                    }
+                }else{
+                    setTimeout(() => { getNewNotifications(req, res) }, 5000);
                 }
-            }else{
-                setTimeout(() => { getNewNotifications(req, res) }, 5000);
-            }
+            })
         })
     } catch (err) {
         console.log(err);
@@ -239,7 +257,7 @@ export const getSendedFriendRequests = (req: Request, res: Response) => {
 export const getFriends = (req: Request, res: Response) => {
     try {
         let query = `
-            SELECT f.id, f.my_profile_id, f.friend_profile_id, u.username FROM friends AS f 
+            SELECT f.id, f.my_profile_id, f.friend_profile_id, u.username, p.is_active FROM friends AS f 
             INNER JOIN profiles AS p ON (f.my_profile_id=p.id OR f.friend_profile_id=p.id)
             INNER JOIN users AS u ON u.id=p.user_id
             WHERE (f.my_profile_id=${req.profile.id} OR f.friend_profile_id=${req.profile.id}) AND username!='${req.user.username}'
@@ -257,7 +275,7 @@ export const getFriends = (req: Request, res: Response) => {
                     friend_profile_id = friendship.my_profile_id;
                 }
 
-                return {id: friendship.id, friend_profile_id, username: friendship.username};
+                return {id: friendship.id, friend_profile_id, username: friendship.username, is_active: friendship.is_active};
             })
 
             res.json(friends);
@@ -435,12 +453,34 @@ export const removeFriend = (req: Request, res: Response) => {
     try {
         const friendshipId = parseInt(req.params.friendshipId);
 
-        let query = `DELETE FROM friends WHERE id=${friendshipId}`;
+        let query = `SELECT my_profile_id, friend_profile_id FROM friends WHERE id=${friendshipId}`;
 
-        db.query(query, (err: MysqlError) => {
+        db.query(query, (err: MysqlError, result) => {
             if(err) throw err;
 
-            res.json({message: "Friend deleted successfully!"});
+            if(result.length === 0){
+                return res.status(404).json({error: "Friendship not found"});
+            }
+
+            let otherProfileId = result.my_profile_id === req.profile.id ? result.friend_profile_id : result.my_profile_id;
+
+            query = `DELETE FROM friends WHERE id=${friendshipId}`;
+
+            db.query(query, (err: MysqlError) => {
+                if(err) throw err;
+
+                query = `
+                    DELETE FROM conversations WHERE 
+                    (profile_1_id=${req.profile.id} AND profile_2_id=${otherProfileId}) OR
+                    (profile_1_id=${otherProfileId} AND profile_2_id=${req.profile.id})
+                `
+
+                db.query(query, (err: MysqlError) => {
+                    if(err) throw err;
+
+                    res.json({message: "Friend deleted successfully!"});
+                })
+            })
         })
     } catch (err) {
         console.log(err)
@@ -481,5 +521,28 @@ export const deleteNotification = (req: Request, res: Response) => {
     } catch (err) {
         console.log(err);
         res.status(500).json({error: err.message})
+    }
+}
+
+export const changeActivity = (req: Request, res: Response) => {
+    try {
+        const errors = validationResult(req);
+
+        if(!errors.isEmpty()){
+            return res.status(400).json({errors: errors.array()})
+        }
+
+        const {isActive} = req.body;
+
+        let query = `UPDATE profiles SET is_active=${isActive} WHERE id=${req.profile.id}`;
+
+        db.query(query, (err:MysqlError) => {
+            if(err) throw err;
+
+            res.json({message: "User activity changed successfully"});
+        })
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({error: err.message});
     }
 }

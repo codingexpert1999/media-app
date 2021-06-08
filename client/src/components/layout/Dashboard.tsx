@@ -1,6 +1,14 @@
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { getFriendRequests, getFriends, getNotifications, getProfile, getSendedFriendRequests, setCurrentProfileUsername } from '../../actions/profileActions'
+import { 
+    changeUserActivity, 
+    getFriendRequests, 
+    getFriends, 
+    getNotifications, 
+    getProfile, 
+    getSendedFriendRequests, 
+    setCurrentProfileUsername
+} from '../../actions/profileActions'
 import CreatePost from '../modals/CreatePost'
 import Posts from '../post/Posts'
 import SideNavLeft from '../sidenavs/SideNavLeft'
@@ -18,6 +26,7 @@ import { toast } from 'react-toastify'
 import { GET_NEW_NOTIFICATIONS } from '../../actionTypes/profileActionTypes'
 import Conversation from '../messages/Conversation'
 import Messages from '../modals/messages/Messages'
+import { getConversations } from '../../actions/conversationActions'
 
 const Dashboard = () => {
     const {user} = useSelector((state:State) => state.user) 
@@ -59,6 +68,8 @@ const Dashboard = () => {
             dispatch(getFriendRequests(user.id, profile.id));
             dispatch(getSendedFriendRequests(user.id, profile.id));
             dispatch(getNotifications(user.id, profile.id));
+            dispatch(changeUserActivity(user.id, profile.id, 1));
+            dispatch(getConversations(user.id, profile.id))
 
             // longPolling()
         }

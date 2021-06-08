@@ -15,7 +15,8 @@ const db = mysql.createConnection({
     host,
     port,
     password,
-    database
+    database,
+    charset : 'utf8mb4'
 })
 
 export const asyncQuery = promisify(db.query).bind(db);

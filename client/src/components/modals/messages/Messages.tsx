@@ -1,10 +1,13 @@
 import React from 'react'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { closeModal } from '../../../actions/layoutActions';
+import { State } from '../../../interfaces';
 import Message from './Message';
 
 const Messages = () => {
     const dispatch = useDispatch();
+
+    const {convos} = useSelector((state: State) => state.conversation)
 
     return (
         <div className="modal messages">
@@ -17,10 +20,15 @@ const Messages = () => {
 
                     <div className="modal-body">
                         <ul className="messages-list">
-                            <Message/>
-                            <Message/>
-                            <Message/>
-                            <Message/>
+                            {
+                                convos.map(convo => (
+                                    <Message 
+                                        key={convo.id} 
+                                        message={convo.lastMessage} 
+                                        friendProfileId={convo.friendProfileId}
+                                    />
+                                ))
+                            }
                         </ul>
                     </div>
                 </div>

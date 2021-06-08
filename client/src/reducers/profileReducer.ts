@@ -16,7 +16,8 @@ import {
     ACCEPT_FRIEND_REQUEST,
     READ_NOTIFICATIONS,
     DELETE_NOTIFICATION,
-    GET_NEW_NOTIFICATIONS
+    GET_NEW_NOTIFICATIONS,
+    CHANGE_USER_ACTIVITY
 } from "../actionTypes/profileActionTypes";
 import { LOG_OUT } from "../actionTypes/userActionTypes";
 import { ProfilePayload, ProfileState } from "../interfaces/profile";
@@ -29,7 +30,8 @@ const initialState: ProfileState = {
         posts: 0,
         friends: 0,
         status: "",
-        username: null
+        username: null,
+        is_active: 0
     },
     friends: [],
     friendRequests: [],
@@ -42,7 +44,8 @@ const initialState: ProfileState = {
         posts: 0,
         friends: 0,
         status: "",
-        username: null
+        username: null,
+        is_active: 0
     },
     searchResults: [],
     searchMatches: [],
@@ -122,6 +125,9 @@ const profileReducer = (state=initialState, action: {type:string, payload: Profi
             })
 
             return {...state, notifications: newNotifications}
+        case CHANGE_USER_ACTIVITY:
+            profile.is_active = payload.isActive;
+            return {...state, profile}
         default:
             return state;
     }

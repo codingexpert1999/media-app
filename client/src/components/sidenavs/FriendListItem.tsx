@@ -1,13 +1,17 @@
 import React, { useState } from 'react'
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useHistory } from 'react-router';
-import { setShowConversation } from '../../actions/conversationActions';
+import { setCurrentConversation, setShowConversation } from '../../actions/conversationActions';
 import { setCurrentProfileUsername } from '../../actions/profileActions';
+import { State } from '../../interfaces';
 import { Friend } from '../../interfaces/profile'
 
 const FriendListItem = (props: {friend: Friend}) => {
     const dispatch = useDispatch();
     const history = useHistory();
+
+    const {user} = useSelector((state: State) => state.user)
+    const {profile} = useSelector((state: State) => state.profile)
 
     const [showOptions, setShowOptions] = useState(false);
 
@@ -24,13 +28,16 @@ const FriendListItem = (props: {friend: Friend}) => {
                         dispatch(setCurrentProfileUsername(props.friend.username));
                         history.push(`/profile/${props.friend.friend_profile_id}`);
                     }}>View Profile</span>
-                    <span onClick={() => dispatch(setShowConversation(true))}>Send Message</span>
+                    <span onClick={() => {
+                        dispatch(setCurrentConversation(props.friend.friend_profile_id, user.id, profile.id, props.friend.username))
+                        dispatch(setShowConversation(true))
+                    }}>Send Message</span>
                 </div>
             }
 
             <span>
                 <img src="/assets/user.png" className="img-fluid" alt="Default User"/>
-                <div className="user-activity"></div>
+                <div className={props.friend.is_active === 0 ? "user-activity" : "user-activity active"}></div>
             </span>
 
             {props.friend.username}

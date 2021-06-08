@@ -16,7 +16,8 @@ import {
     removeFriend,
     readNotifications,
     deleteNotification,
-    getNewNotifications
+    getNewNotifications,
+    changeActivity,
 } from '../controllers/profile';
 import {isAuthorized, userById, profileById} from '../middlewares/user'
 import {check} from 'express-validator';
@@ -60,6 +61,11 @@ router.delete("/profile/friend/:friendshipId/:userId/:profileId", isAuthorized, 
 router.put("/profile/notifications/:userId/:profileId", isAuthorized, readNotifications);
 
 router.delete("/profile/notifications/:notificationId/:userId/:profileId", isAuthorized, deleteNotification);
+
+router.put("/profile/change_activity/:userId/:profileId", isAuthorized, [
+    check("isActive", "User activity is required").notEmpty(),
+    check("isActive", "User activity must be 0 or 1").isInt({min: 0, max: 1})
+], changeActivity);
 
 router.param("userId", userById);
 router.param("profileId", profileById);

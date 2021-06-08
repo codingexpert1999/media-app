@@ -1,4 +1,4 @@
-import {Answer, Post, User, Comment, Profile} from './interfaces'
+import {Answer, Post, User, Comment, Profile, Conversation, Convo, Message} from './interfaces'
 
 declare global {
     namespace Express {
@@ -9,6 +9,7 @@ declare global {
             answer: Answer;
             profile: Profile;
             authToken: string;
+            conversation: Conversation;
         }
     }
 }
@@ -22,6 +23,9 @@ declare module 'express-session' {
 }
 
 import express from 'express';
+import http from 'http'
+import redisAdapter from '@socket.io/redis-adapter'
+import {Server} from 'socket.io'
 import {config} from 'dotenv'
 
 import connectRedis from 'connect-redis';
@@ -34,13 +38,18 @@ import postRoutes from './routes/post'
 import commentRoutes from './routes/comment'
 import answerRoutes from './routes/answer'
 import profileRoutes from './routes/profile'
-import redisClient from './config/redis';
+import messageRoutes from './routes/messages'
+
+import redisClient, { publisher, subscriber } from './config/redis';
 import cookieParser from 'cookie-parser';
 import { cors } from './middlewares/cors';
+import { MysqlError } from 'mysql';
 
 config();
 
 const app = express();
+
+const server = http.createServer(app);
 
 // Connect to database
 db.connect((err) => {
@@ -50,6 +59,82 @@ db.connect((err) => {
     }
 
     console.log("Connected to database...")
+})
+
+const io = new Server(
+    server, 
+    { 
+        cors: {origin: 'http://localhost:3000'},
+        adapter: redisAdapter.createAdapter(publisher, subscriber)
+    }
+)
+
+io.on("connection", socket => {
+    socket.on("open-convo", (convoId: number) => {
+        socket.join('convo-' + convoId);
+        redisClient.set(socket.id, convoId + "");
+    })
+
+    socket.on("message", (convoId: number, profileId: number, message: string, isIcon: boolean) => {
+        let messageObj: Message = {
+            id: Date.now(),
+            message,
+            profile_id: profileId,
+            seen: 0,
+            conversation_id: convoId,
+            is_icon: isIcon ? 1 : 0,
+            created_at: new Date().toISOString()
+        }
+
+        io.to("convo-"+convoId).emit("new-message", messageObj);
+
+        try {
+            let query = "";
+
+            if(isIcon){
+                query = `
+                    INSERT INTO messages(message, profile_id, conversation_id, is_icon) 
+                    VALUES('${message}', ${profileId}, ${convoId}, TRUE)
+                `;
+            }else{
+                query = `
+                    INSERT INTO messages(message, profile_id, conversation_id) 
+                    VALUES('${message}', ${profileId}, ${convoId})
+                `;
+            }
+            
+            db.query(query, (err: MysqlError) => {
+                if(err) throw err;
+
+                redisClient.get(profileId + "-conversations", (err, reply) => {
+                    if(err) throw err;
+
+                    let conversations = JSON.parse(reply + "") as Convo[];
+
+                    conversations = conversations.map(convo => {
+                        if(convo.id === convoId){
+                            convo.lastMessage = messageObj;
+                        }
+
+                        return convo;
+                    })
+
+                    redisClient.setex(profileId + "-conversations", 3600 * 2, JSON.stringify(conversations))
+                })
+            })
+        } catch (err) {
+            console.log(err);
+        }
+    })
+
+    socket.on("disconnect", () => {
+        redisClient.get(socket.id, (err, reply) => {
+            if(err) throw err;
+
+            subscriber.unsubscribe("convo-" + reply);
+            redisClient.del(socket.id);
+        })
+    })
 })
 
 // app.set('trust proxy', 1);
@@ -85,7 +170,8 @@ app.use("/api", postRoutes);
 app.use("/api", commentRoutes);
 app.use("/api", answerRoutes);
 app.use("/api", profileRoutes);
+app.use("/api", messageRoutes);
 
 const PORT = parseInt(process.env.PORT!) || 5000
 
-app.listen(PORT, () => console.log(`Server started on port ${PORT}...`))
+server.listen(PORT, () => console.log(`Server started on port ${PORT}...`))

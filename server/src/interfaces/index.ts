@@ -52,6 +52,7 @@ export interface Friendship{
     my_profile_id: number;
     friend_profile_id: number;
     username: string;
+    is_active: number;
 }
 
 export interface JwtError{
@@ -66,4 +67,27 @@ export interface Notification{
     seen: number;
     created_at: string;
     profile_image: string;
+}
+
+export interface Message{
+    id: number;
+    message: string;
+    seen: number;
+    created_at: string;
+    profile_id: number;
+    conversation_id: number;
+    is_icon: number;
+}
+
+export interface Conversation{
+    id: number;
+    profile_1_id: number;
+    profile_2_id: number;
+}
+
+export interface Convo{
+    id: number;
+    friendProfileId: number;
+    username: string;
+    lastMessage: Message | undefined;
 }

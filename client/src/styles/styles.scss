@@ -584,35 +584,39 @@ footer{
         padding: 30px 0;
         margin-bottom: 30px;
 
-        .profile-header-top > div:first-child{
-            margin-bottom: 20px;
+        .profile-header-top{
+            & > div:first-child{
+                margin-bottom: 20px;
 
-            img{
-                width: 250px;
-                height: 250px;
-                border-radius: 50%;
-                margin-right: 30px;
-            }
-
-            .profile-details{
-                font-size: 1.3rem;
-
-                span{
-                    margin-bottom: 15px;
-
-                    &:last-child{
-                        margin-bottom: 0;
-                        cursor: pointer;
-                    }
-
-                    strong{
-                        font-style: italic;
+                img{
+                    width: 250px;
+                    height: 250px;
+                    border-radius: 50%;
+                    margin-right: 30px;
+                }
+    
+                .profile-details{
+                    font-size: 1.3rem;
+    
+                    span{
+                        margin-bottom: 15px;
+    
+                        &:last-child{
+                            margin-bottom: 0;
+                            cursor: pointer;
+                        }
+    
+                        strong{
+                            font-style: italic;
+                        }
                     }
                 }
             }
-        }
 
-        
+            .send-message-btn{
+                margin-left: 20px;
+            }
+        } 
 
         .description{
             width: 500px;
@@ -802,25 +806,74 @@ footer{
             max-height: 300px;
             overflow-y: auto;
     
-            
-    
-            .message{
-                padding: 10px;
-                letter-spacing: 0.4px;
-                line-height: 1.4;
+            .loading{
+                .spinner-border{
+                    width: 25px !important;
+                    height: 25px !important;
+                    border-width: 3px;
+                }
+
+                span{
+                    font-size: 1rem !important;
+                }
+            }
+
+            .conversation-message{
                 max-width: 70%;
-                border-radius: 5px;
-    
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+
                 &.sended{
-                    background: var(--bs-primary);
-                    color: white;
                     margin-left: auto;
+                    align-items: flex-end;
+
+                    .message{
+                        background: var(--bs-primary);
+                        color: white;
+
+                        &.icon{
+                            text-align: right;
+                        }
+                    }
                 }
     
                 &.received{
-                    background: #f4f4f4;
-                    color: #333;
                     margin-right: auto;
+                    align-items: flex-start;
+
+                    .message{
+                        background: #f4f4f4;
+                        color: #333;
+
+                        &.icon{
+                            text-align: left;
+                        }
+                    }
+                }
+
+                .message{
+                    padding: 10px;
+                    letter-spacing: 0.4px;
+                    line-height: 1.4;
+                    border-radius: 5px;
+                    margin-bottom: 5px;
+
+                    &.icon{
+                        font-size: 1.8rem;
+                        background: white;
+                    }
+                }
+
+                .time-sended{
+                    margin-bottom: 5px;
+                    font-size: .9rem;
+                    color: #333;
+                }
+
+                .seen{
+                    font-size: .8rem;
+                    color: #333;
                 }
             }
         }
@@ -832,7 +885,7 @@ footer{
             justify-content: space-between;
             border-top: 1px solid #ccc;
             position: relative;
-    
+
             .message-input{
                 display: flex;
                 align-items: center;
@@ -872,7 +925,7 @@ footer{
                     }
                 }
             }
-    
+
             i{
                 color: var(--bs-primary);
                 font-size: 1.5rem;
