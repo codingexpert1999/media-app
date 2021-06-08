@@ -1,5 +1,7 @@
 USE socialmedia;
 
+ALTER DATABASE socialmedia CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
 -- Tables
 CREATE TABLE users(
 	id INT AUTO_INCREMENT PRIMARY KEY,
@@ -15,10 +17,13 @@ CREATE TABLE profiles(
     friends INT DEFAULT 0,
     posts INT DEFAULT 0,
     status VARCHAR(20) DEFAULT 'public',
+    is_active BOOL,
     user_id INT,
     KEY userID(user_id),
     CONSTRAINT userID FOREIGN KEY(user_id) REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE
 );
+
+ALTER TABLE profiles ADD COLUMN is_active BOOL DEFAULT FALSE;
 
 CREATE TABLE posts(
 	id INT AUTO_INCREMENT PRIMARY KEY,
@@ -132,6 +137,30 @@ CREATE TABLE answers_liked(
     CONSTRAINT postID_answers_liked FOREIGN KEY(answer_id) REFERENCES answers(id) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
+CREATE TABLE conversations(
+	id INT AUTO_INCREMENT PRIMARY KEY,
+    profile_1_id INT,
+    profile_2_id INT,
+    KEY convoProfile1ID(profile_1_id),
+    CONSTRAINT convoProfile1ID FOREIGN KEY(profile_1_id) REFERENCES profiles(id) ON UPDATE CASCADE ON DELETE CASCADE,
+    KEY convoProfile2ID(profile_2_id),
+    CONSTRAINT convoProfile2ID FOREIGN KEY(profile_2_id) REFERENCES profiles(id) ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+CREATE TABLE messages(
+	id INT AUTO_INCREMENT PRIMARY KEY,
+    message VARCHAR(1000),
+    seen BOOL DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_icon BOOL,
+    profile_id INT,
+    conversation_id INT,
+    KEY senderID(profile_id),
+    CONSTRAINT senderID FOREIGN KEY(profile_id) REFERENCES profiles(id) ON UPDATE CASCADE ON DELETE CASCADE,
+    KEY conversationID(conversation_id),
+    CONSTRAINT conversationID FOREIGN KEY(conversation_id) REFERENCES conversations(id) ON UPDATE CASCADE ON DELETE CASCADE
+);
+
 -- Procedures
 DELIMITER $$
 CREATE PROCEDURE registerUser(
@@ -220,6 +249,9 @@ SELECT * FROM posts;
 SELECT * FROM comments;
 SELECT * FROM answers;
 
+DELETE FROM posts WHERE id>0;
+DELETE FROM notifications WHERE id>0;
+
 SELECT * FROM friend_requests;
 SELECT * FROM friends;
 SELECT * FROM notifications;
@@ -227,6 +259,9 @@ SELECT * FROM notifications;
 SELECT * FROM posts_liked;
 SELECT * FROM comments_liked;
 SELECT * FROM answers_liked;
+
+SELECT * FROM conversations;
+SELECT * FROM messages;
 
 -- SELECT posts updated query
 SELECT DISTINCT(p.id), p.post_text, p.post_image, p.post_video, p.likes, p.created_at, p.profile_id, u.username FROM posts as p 
@@ -248,3 +283,11 @@ SELECT f.id, f.my_profile_id, f.friend_profile_id, u.username FROM friends AS f
 INNER JOIN profiles AS p ON (f.my_profile_id=p.id OR f.friend_profile_id=p.id)
 INNER JOIN users AS u ON u.id=p.user_id
 WHERE (f.my_profile_id=2 OR f.friend_profile_id=2) AND username!='mike12';
+
+SELECT n.id, n.notification_type, n.notification, n.sender_profile_id, n.seen, n.created_at, p.profile_image
+FROM notifications AS n INNER JOIN profiles AS p ON p.id=n.sender_profile_id
+WHERE n.seen=0 AND n.profile_id=2 ORDER BY created_at DESC;
+
+SELECT * FROM conversations WHERE profile_1_id=1 OR profile_2_id=1;
+
+UPDATE profiles SET is_active=TRUE WHERE id=4;
