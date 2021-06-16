@@ -9,7 +9,9 @@ const ConversationMessage = (props: {message: Message; prevMessage: Message | nu
 
     const sended = props.message.profile_id === profile.id;
 
-    const timeDifference = Date.now() - (new Date(props.message.created_at).getTime())
+    const timeDifference = props.prevMessage ?
+        (new Date(props.message.created_at).getTime()) - (new Date(props.message.created_at).getTime()) 
+        : Date.now() - (new Date(props.message.created_at).getTime())
 
     const showTime = timeDifference >= 600000
 
