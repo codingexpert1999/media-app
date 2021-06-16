@@ -68,54 +68,54 @@ export const getConversationMessages = (req: Request, res: Response) => {
 
 export const getConversations = (req: Request, res: Response) => {
     try {
-        if(redisClient.get(`${req.user.id}-conversations`)){
-            redisClient.get(req.user.id + "-conversations", (err, reply) => {
-                if(err) throw err;
+        redisClient.get(req.user.id + "-conversations", (err, reply) => {
+            if(err) throw err;
 
+            if(reply){
                 let conversations = JSON.parse(reply + "")
 
                 res.json(conversations);
-            })
-        }else{
-            let query = `
-                SELECT id, profile_1_id, profile_2_id FROM conversations 
-                WHERE profile_1_id=${req.profile.id} OR profile_2_id=${req.profile.id}
-            `
+            }else{
+                let query = `
+                    SELECT id, profile_1_id, profile_2_id FROM conversations 
+                    WHERE profile_1_id=${req.profile.id} OR profile_2_id=${req.profile.id}
+                `
 
-            db.query(query, async (err: MysqlError, result) => {
-                if(err) throw err;
+                db.query(query, async (err: MysqlError, result) => {
+                    if(err) throw err;
 
-                if(result.length === 0){
-                    return res.json([])
-                }
-
-                for(let i = 0; i < result.length; i++){
-                    if(result[i].profile_1_id === req.profile.id){
-                        result[i].friendProfileId = result[i].profile_2_id
-                    }else{
-                        result[i].friendProfileId = result[i].profile_1_id
+                    if(result.length === 0){
+                        return res.json([])
                     }
 
-                    result[i].profile_1_id = undefined
-                    result[i].profile_2_id = undefined
+                    for(let i = 0; i < result.length; i++){
+                        if(result[i].profile_1_id === req.profile.id){
+                            result[i].friendProfileId = result[i].profile_2_id
+                        }else{
+                            result[i].friendProfileId = result[i].profile_1_id
+                        }
 
-                    query = `
-                        SELECT id, message, seen, created_at, is_icon, profile_id 
-                        FROM messages WHERE conversation_id=${result[i].id}
-                    `
+                        result[i].profile_1_id = undefined
+                        result[i].profile_2_id = undefined
 
-                    let lastMessage = await getAsyncMysqlResult(query) as Object[] | undefined;
+                        query = `
+                            SELECT id, message, seen, created_at, is_icon, profile_id 
+                            FROM messages WHERE conversation_id=${result[i].id}
+                        `
 
-                    result[i].lastMessage = lastMessage && lastMessage.length > 0 ? lastMessage[0] : undefined;
-                }
+                        let lastMessage = await getAsyncMysqlResult(query) as Object[] | undefined;
 
-                let conversations = result.filter((convo: Convo) => convo.lastMessage !== undefined) ?? []
+                        result[i].lastMessage = lastMessage && lastMessage.length > 0 ? lastMessage[0] : undefined;
+                    }
 
-                redisClient.setex(req.profile.id + "-conversations", 3600 * 2, JSON.stringify(conversations));
+                    let conversations = result.filter((convo: Convo) => convo.lastMessage !== undefined) ?? []
 
-                res.json(conversations)
-            })
-        }
+                    redisClient.setex(req.profile.id + "-conversations", 3600 * 2, JSON.stringify(conversations));
+
+                    res.json(conversations)
+                })
+            }
+        })
     } catch (err) {
         console.log(err)
         res.status(500).json({error: err.message});

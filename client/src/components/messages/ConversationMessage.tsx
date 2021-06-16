@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React from 'react'
 import { useSelector } from 'react-redux'
 import { State } from '../../interfaces'
 import { Message } from '../../interfaces/conversation'
@@ -10,7 +10,7 @@ const ConversationMessage = (props: {message: Message; prevMessage: Message | nu
     const sended = props.message.profile_id === profile.id;
 
     const timeDifference = props.prevMessage ?
-        (new Date(props.message.created_at).getTime()) - (new Date(props.message.created_at).getTime()) 
+        (new Date(props.message.created_at).getTime()) - (new Date(props.prevMessage.created_at).getTime()) 
         : Date.now() - (new Date(props.message.created_at).getTime())
 
     const showTime = timeDifference >= 600000

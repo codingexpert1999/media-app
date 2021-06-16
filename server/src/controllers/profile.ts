@@ -181,14 +181,14 @@ export const getNewNotifications = (req: Request, res: Response) => {
                 if(err) throw err;
 
                 if(result.length > 0){
-                    if(!redisClient.get(req.profile.id + "-notifications")){
-                        redisClient.setex(req.profile.id + "-notifications", 3600 * 2, JSON.stringify(result));
-                        count = 0;
-                        return res.json(result)
-                    }else{
-                        redisClient.get(req.profile.id + "-notifications", (err, reply) => {
-                            if(err) throw err;
+                    redisClient.get(req.profile.id + "-notifications", (err, reply) => {
+                        if(err) throw err;
 
+                        if(!reply){
+                            redisClient.setex(req.profile.id + "-notifications", 3600 * 2, JSON.stringify(result));
+                            count = 0;
+                            return res.json(result)
+                        }else{
                             let notifications = [];
                             let prevNotifications: Notification[] = reply ? JSON.parse(reply) : [];
             
@@ -211,8 +211,8 @@ export const getNewNotifications = (req: Request, res: Response) => {
                             }else{
                                 setTimeout(() => { getNewNotifications(req, res) }, 5000);
                             }
-                        })
-                    }
+                        }
+                    })
                 }else{
                     setTimeout(() => { getNewNotifications(req, res) }, 5000);
                 }

@@ -9,8 +9,10 @@ const SideNavLeft = () => {
 
     const {notifications} = useSelector((state:State) => state.profile);
     const {modalType} = useSelector((state:State) => state.layout);
+    const {messages} = useSelector((state:State) => state.conversation);
 
     const [unseenNotifications, setUnseenNotifications] = useState(notifications.filter(notification => notification.seen === 0).length)
+    const [unseenMessages, setUnseenMessages] = useState(messages.filter(message => message.seen === 0).length)
 
     useEffect(() => {
         setUnseenNotifications(notifications.filter(notification => notification.seen === 0).length)
@@ -45,7 +47,7 @@ const SideNavLeft = () => {
                 className="clickable"
                 onClick={() => dispatch(openModal("messages"))}
             >
-                Messages <i className="fas fa-inbox"></i> <span>35</span>
+                Messages <i className="fas fa-inbox"></i> {unseenMessages > 0 && <span>{unseenMessages}</span>}
             </li>
         </ul>
     )
