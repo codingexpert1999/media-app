@@ -8,19 +8,20 @@ import CreateAnswer from '../modals/CreateAnswer'
 import CreatePost from '../modals/CreatePost'
 import { openModal } from '../../actions/layoutActions'
 import RequestButton from './RequestButton'
-import { setShowConversation } from '../../actions/conversationActions'
+import { setCurrentConversation, setShowConversation } from '../../actions/conversationActions'
 import Conversation from '../messages/Conversation'
 
 const Profile = () => {
     const dispatch = useDispatch();
     const {user} = useSelector((state:State) => state.user)
     const {loading} = useSelector((state: State) => state.post);
-    const { profile, currentProfile } = useSelector((state:State) => state.profile)
+    const { profile, currentProfile, friends } = useSelector((state:State) => state.profile)
     const {showConversation} = useSelector((state: State) => state.conversation);
 
     const {showModal, modalType} = useSelector((state:State) => state.layout) 
 
     const isCurrentProfile = profile.id === currentProfile.id;
+    const isFriend = !isCurrentProfile && friends.find(friend => friend.friend_profile_id === currentProfile.id) ? true : false
 
     const [description, setDescription] = useState(currentProfile.profile_description);
     const [editProfile, setEditProfile] = useState(false);
@@ -106,11 +107,12 @@ const Profile = () => {
                         }
 
                         {
-                            !isCurrentProfile &&
+                            !isCurrentProfile && isFriend &&
                             <button 
                                 className="btn btn-primary send-message-btn" 
                                 onClick={() => {
                                     dispatch(setShowConversation(true))
+                                    dispatch(setCurrentConversation(currentProfile.id, user.id, profile.id, currentProfile.username))
                                 }}
                             >
                                 Send Message <i className="fas fa-inbox"></i>
