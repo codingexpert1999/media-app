@@ -50,9 +50,11 @@ export const readMessages = (req: Request, res: Response) => {
 
 export const getConversationMessages = (req: Request, res: Response) => {
     try {
+        let starting = req.query.starting || 0;
+
         let query = `
             SELECT id, message, seen, is_icon, created_at, profile_id FROM messages
-            WHERE conversation_id=${req.conversation.id}
+            WHERE conversation_id=${req.conversation.id} ORDER BY created_at DESC LIMIT ${starting}, 15
         `
 
         db.query(query, (err: MysqlError, result) => {
@@ -68,14 +70,10 @@ export const getConversationMessages = (req: Request, res: Response) => {
 
 export const getConversations = (req: Request, res: Response) => {
     try {
-        redisClient.get(req.user.id + "-conversations", (err, reply) => {
+        redisClient.get(req.profile.id + "-convos-changed", (err, reply) => {
             if(err) throw err;
 
             if(reply){
-                let conversations = JSON.parse(reply + "")
-
-                res.json(conversations);
-            }else{
                 let query = `
                     SELECT id, profile_1_id, profile_2_id FROM conversations 
                     WHERE profile_1_id=${req.profile.id} OR profile_2_id=${req.profile.id}
@@ -100,7 +98,7 @@ export const getConversations = (req: Request, res: Response) => {
 
                         query = `
                             SELECT id, message, seen, created_at, is_icon, profile_id 
-                            FROM messages WHERE conversation_id=${result[i].id}
+                            FROM messages WHERE conversation_id=${result[i].id} ORDER BY created_at DESC
                         `
 
                         let lastMessage = await getAsyncMysqlResult(query) as Object[] | undefined;
@@ -110,9 +108,59 @@ export const getConversations = (req: Request, res: Response) => {
 
                     let conversations = result.filter((convo: Convo) => convo.lastMessage !== undefined) ?? []
 
+                    redisClient.del(req.profile.id + "-convos-changed");
                     redisClient.setex(req.profile.id + "-conversations", 3600 * 2, JSON.stringify(conversations));
 
                     res.json(conversations)
+                })
+            }else{
+                redisClient.get(req.profile.id + "-conversations", (err, reply) => {
+                    if(err) throw err;
+        
+                    if(reply){
+                        let conversations = JSON.parse(reply + "")
+        
+                        res.json(conversations);
+                    }else{
+                        let query = `
+                            SELECT id, profile_1_id, profile_2_id FROM conversations 
+                            WHERE profile_1_id=${req.profile.id} OR profile_2_id=${req.profile.id}
+                        `
+        
+                        db.query(query, async (err: MysqlError, result) => {
+                            if(err) throw err;
+        
+                            if(result.length === 0){
+                                return res.json([])
+                            }
+        
+                            for(let i = 0; i < result.length; i++){
+                                if(result[i].profile_1_id === req.profile.id){
+                                    result[i].friendProfileId = result[i].profile_2_id
+                                }else{
+                                    result[i].friendProfileId = result[i].profile_1_id
+                                }
+        
+                                result[i].profile_1_id = undefined
+                                result[i].profile_2_id = undefined
+        
+                                query = `
+                                    SELECT id, message, seen, created_at, is_icon, profile_id 
+                                    FROM messages WHERE conversation_id=${result[i].id} ORDER BY created_at DESC
+                                `
+        
+                                let lastMessage = await getAsyncMysqlResult(query) as Object[] | undefined;
+        
+                                result[i].lastMessage = lastMessage && lastMessage.length > 0 ? lastMessage[0] : undefined;
+                            }
+        
+                            let conversations = result.filter((convo: Convo) => convo.lastMessage !== undefined) ?? []
+        
+                            redisClient.setex(req.profile.id + "-conversations", 3600 * 2, JSON.stringify(conversations));
+        
+                            res.json(conversations)
+                        })
+                    }
                 })
             }
         })

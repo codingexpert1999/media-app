@@ -9,14 +9,27 @@ const SideNavLeft = () => {
 
     const {notifications} = useSelector((state:State) => state.profile);
     const {modalType} = useSelector((state:State) => state.layout);
-    const {messages} = useSelector((state:State) => state.conversation);
+    const {convos} = useSelector((state:State) => state.conversation);
+    const {profile} = useSelector((state: State) => state.profile);
 
     const [unseenNotifications, setUnseenNotifications] = useState(notifications.filter(notification => notification.seen === 0).length)
-    const [unseenMessages, setUnseenMessages] = useState(messages.filter(message => message.seen === 0).length)
+    const [unseenMessages, setUnseenMessages] = useState(
+        convos.filter(
+            convo => convo.lastMessage.seen === 0 && convo.lastMessage.profile_id !== profile.id
+        ).length
+    )
 
     useEffect(() => {
         setUnseenNotifications(notifications.filter(notification => notification.seen === 0).length)
     }, [notifications])
+
+    useEffect(() => {
+        setUnseenMessages(
+            convos.filter(
+                convo => convo.lastMessage.seen === 0 && convo.lastMessage.profile_id !== profile.id
+            ).length
+        )
+    }, [convos])
 
     return (
         <ul className="sidenav sidenav-left shadow">

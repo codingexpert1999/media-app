@@ -47,9 +47,8 @@ export interface Profile{
     user_id: number;
 }
 
-export interface Friendship{
+export interface Friend{
     id: number;
-    my_profile_id: number;
     friend_profile_id: number;
     username: string;
     is_active: number;

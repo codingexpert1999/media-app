@@ -152,7 +152,7 @@ CREATE TABLE messages(
     message VARCHAR(1000),
     seen BOOL DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    is_icon BOOL,
+    is_icon BOOL DEFAULT FALSE,
     profile_id INT,
     conversation_id INT,
     KEY senderID(profile_id),
@@ -263,6 +263,8 @@ SELECT * FROM answers_liked;
 SELECT * FROM conversations;
 SELECT * FROM messages;
 
+DELETE FROM messages WHERE id>0;
+
 -- SELECT posts updated query
 SELECT DISTINCT(p.id), p.post_text, p.post_image, p.post_video, p.likes, p.created_at, p.profile_id, u.username FROM posts as p 
 LEFT JOIN friends as f ON f.my_profile_id=2 OR f.friend_profile_id=2
@@ -284,10 +286,19 @@ INNER JOIN profiles AS p ON (f.my_profile_id=p.id OR f.friend_profile_id=p.id)
 INNER JOIN users AS u ON u.id=p.user_id
 WHERE (f.my_profile_id=2 OR f.friend_profile_id=2) AND username!='mike12';
 
+SELECT f.id, IF(f.friend_profile_id=2, f.my_profile_id, f.friend_profile_id) as friend_profile_id, p.is_active, u.username FROM friends AS f 
+INNER JOIN profiles AS p ON (f.my_profile_id=p.id OR f.friend_profile_id=p.id)
+INNER JOIN users AS u ON u.id=p.user_id
+WHERE (f.my_profile_id=2 OR f.friend_profile_id=2) AND username!='mike12';
+
 SELECT n.id, n.notification_type, n.notification, n.sender_profile_id, n.seen, n.created_at, p.profile_image
 FROM notifications AS n INNER JOIN profiles AS p ON p.id=n.sender_profile_id
 WHERE n.seen=0 AND n.profile_id=2 ORDER BY created_at DESC;
 
 SELECT * FROM conversations WHERE profile_1_id=1 OR profile_2_id=1;
 
-UPDATE profiles SET is_active=TRUE WHERE id=4;
+UPDATE profiles SET is_active=FALSE WHERE id=1;
+
+DELETE FROM messages WHERE id>0;
+
+SELECT * FROM profiles;

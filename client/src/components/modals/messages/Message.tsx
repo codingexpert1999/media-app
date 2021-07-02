@@ -25,7 +25,7 @@ const Message = (props: {message: MessageObj; friendProfileId: number;}) => {
                 <div className={ friend.is_active === 1 ? "user-activity active" : "user-activity"}></div>
             </div>
 
-            <p className={props.message.seen === 1 ? "seen" : ""}>{props.message.message}</p>
+            <p className={props.message.seen === 1 || props.message.profile_id === profile.id ? "seen" : ""}>{props.message.message}</p>
         </li>
     )
 }

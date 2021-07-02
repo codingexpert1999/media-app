@@ -2,19 +2,30 @@ import React, { useEffect, useRef, useState } from 'react'
 import Picker, { IEmojiData } from 'emoji-picker-react';
 import ConversationMessage from './ConversationMessage';
 import { useDispatch, useSelector } from 'react-redux';
-import { getConversationMessages, newMessage, setShowConversation } from '../../actions/conversationActions';
+import { 
+    closeConversation, 
+    getConversationMessages, 
+    increaseMessageStarting, 
+    newMessage, 
+    readConversationMessages, 
+    setCurrentConversation, 
+    setHasMoreMessagesToLoad, 
+    setShowConversation 
+} from '../../actions/conversationActions';
 import io from 'socket.io-client'
 import { State } from '../../interfaces';
 import { Message } from '../../interfaces/conversation';
+import { Friend } from '../../interfaces/profile';
 
 const Conversation = () => {
     const dispatch = useDispatch();
 
     const {user} = useSelector((state: State) => state.user)
     const {profile, friends} = useSelector((state: State) => state.profile)
-    const {currentConversation, messages, loading} = useSelector((state: State) => state.conversation)
+    const {currentConversation, messages, loading, starting, hasMoreMessagesToLoad} = useSelector((state: State) => state.conversation)
 
     const messageRef = useRef<HTMLDivElement>(null);
+    const conversationBodyRef = useRef<HTMLDivElement>(null);
 
     const socketClient = useRef<SocketIOClient.Socket>();
 
@@ -22,8 +33,12 @@ const Conversation = () => {
     const [message, setMessage] = useState("");
     const [showEmojis, setShowEmojis] = useState(false);
     const [textAreaHeight, setTextAreaHeight] = useState(35);
-    const [isActive, setIsActive] = useState(false);
     const [backspaceWasLast, setBackspaceWasLast] = useState(false);
+    const [friend, setFriend] = useState<Friend | undefined>(undefined);
+    const [friendIsTyping, setFriendIsTyping] = useState(false);
+    const [imTyping, setImTyping] = useState(false);
+    const [messagesLoaded, setMessagesLoaded] = useState(false);
+    const [scrollHeight, setScrollHeight] = useState(0)
 
     const onEmojiClick = (e: React.MouseEvent<Element, MouseEvent>, data: IEmojiData) => {
         setMessage(message + data.emoji);
@@ -47,7 +62,12 @@ const Conversation = () => {
 
     const sendMessage = () => {
         if(socketClient.current && currentConversation){
-            socketClient.current.emit("message", currentConversation.id, profile.id, message, false);
+            socketClient.current.emit("message", profile.id, currentConversation.friendId, message, false);
+
+            if(imTyping){
+                setImTyping(false);
+                socketClient.current.emit('typing', profile.id, false);
+            }
         }
 
         setMessage("");
@@ -55,13 +75,19 @@ const Conversation = () => {
 
     const sendIcon = () => {
         if(socketClient.current && currentConversation){
-            socketClient.current.emit("message", currentConversation.id, profile.id, "👍", true);
+            socketClient.current.emit("message", profile.id, currentConversation.friendId, "👍", true);
         }
     }
 
     const scrollToBottom = () => {
         if(messageRef.current){
             messageRef.current.scrollIntoView(); 
+        }
+    }
+
+    const scrollToPrevFirstMessage = () => {
+        if(conversationBodyRef.current){
+            conversationBodyRef.current.scrollTo({top: conversationBodyRef.current.scrollHeight - scrollHeight})
         }
     }
 
@@ -74,6 +100,14 @@ const Conversation = () => {
         return context!.measureText(text).width;
     }
 
+    const scrollListener = (e: Event) => {
+        if(conversationBodyRef.current){
+            if(conversationBodyRef.current.scrollTop === 0){
+                dispatch(increaseMessageStarting())
+            }
+        }
+    }
+
     useEffect(() => {
         socketClient.current = io.connect("http://localhost:5000");
 
@@ -81,6 +115,10 @@ const Conversation = () => {
 
         return () => {
             if(socketClient.current){
+                if(currentConversation){
+                    socketClient.current.emit('typing', profile.id, false)
+                }
+
                 socketClient.current.disconnect();
                 socketClient.current = undefined;
             }
@@ -90,23 +128,64 @@ const Conversation = () => {
     }, [])
 
     useEffect(() => {
+        let conversationBodyElement = conversationBodyRef.current;
+
         if(currentConversation){
+            setFriend(friends.find(friend => friend.friend_profile_id === currentConversation.friendId));
+            dispatch(getConversationMessages(user.id, profile.id, currentConversation.id))
+            dispatch(readConversationMessages(user.id, profile.id, currentConversation.id));
+
+            if(conversationBodyRef.current){
+                setScrollHeight(conversationBodyRef.current.scrollHeight);
+                conversationBodyRef.current.addEventListener("scroll", scrollListener);
+            }
+
             if(socketClient.current){
                 socketClient.current.emit("open-convo", currentConversation.id);
 
                 socketClient.current.on("new-message", (messageObj: Message) => {
-                    dispatch(newMessage(messageObj));
+                    dispatch(newMessage(messageObj, currentConversation.id));
+                })
+
+                socketClient.current.on(`${currentConversation.friendId}-is-typing`, (typing: boolean) => {
+                    setFriendIsTyping(typing);
+
+                    if(typing){
+                        scrollToBottom();
+                    }
                 })
             }
+        }
 
-            setIsActive(friends.find(friend => friend.friend_profile_id === currentConversation!.friendId)?.is_active ? true : false);
-            dispatch(getConversationMessages(user.id, profile.id, currentConversation.id))
+        return () => {
+            if(conversationBodyElement){
+                conversationBodyElement.removeEventListener("scroll", scrollListener);
+            }
         }
     }, [currentConversation])
 
     useEffect(() => {
-        scrollToBottom();
+        if(!messagesLoaded && messages.length > 0){
+            scrollToBottom()
+            setMessagesLoaded(true)
+        }
+
+        if(messagesLoaded && messages.length > 0){
+            scrollToPrevFirstMessage()
+
+            if(conversationBodyRef.current){
+                setScrollHeight(conversationBodyRef.current.scrollHeight)
+            }
+        }
+
+        scrollToBottom()
     }, [messages])
+
+    useEffect(() => {
+        if(starting > 0 && currentConversation && hasMoreMessagesToLoad){
+            dispatch(getConversationMessages(user.id, profile.id, currentConversation.id, starting))
+        }
+    }, [starting])
 
     if(!currentConversation){
         return (
@@ -120,14 +199,20 @@ const Conversation = () => {
                 <div className="conversation-header">
                     <img src="/assets/user.png" alt="Default User" />
                     <div className="user">
-                        <span className="username">testuser</span>
-                        <div className={isActive ? "user-activity active" : "user-activity"}>{isActive ? "Active" : "Inactive"}</div>
+                        <span className="username">{friend?.username || ""}</span>
+                        <div className={friend?.is_active === 1 ? "user-activity active" : "user-activity"}>
+                            {friend?.is_active === 1 ? "Active" : "Inactive"}
+                        </div>
                     </div>
 
-                    <div className="close-conversation" onClick={() => dispatch(setShowConversation(false))}>&#x2715;</div>
+                    <div className="close-conversation" onClick={() => {
+                        dispatch(setCurrentConversation(null))
+                        dispatch(closeConversation())
+                        dispatch(setShowConversation(false))
+                    }}>&#x2715;</div>
                 </div>
 
-                <div className="conversation-body">
+                <div className="conversation-body" ref={conversationBodyRef}>
                     {
                         loading && 
                         <div className="d-flex justify-content-center align-items-center loading">
@@ -147,6 +232,12 @@ const Conversation = () => {
                         ))
                     }
 
+                    {   friendIsTyping &&
+                        <div className="typing">
+                            Typing <span>...</span>
+                        </div>
+                    }
+
                     <div className="message-ref" ref={messageRef}></div>
                 </div>
 
@@ -161,6 +252,19 @@ const Conversation = () => {
                             rows={20}
                             onChange={e => {
                                 setMessage(e.target.value);
+
+                                if(e.target.value.length > 0){
+                                    if(!imTyping){
+                                        setImTyping(true);
+                                        if(socketClient.current){
+                                            socketClient.current.emit('typing', profile.id, true);
+                                        }
+                                    }
+                                }else{
+                                    if(imTyping && socketClient.current){
+                                        socketClient.current.emit('typing', profile.id, false);
+                                    }
+                                }
 
                                 let textWidth = calculateTextWidth(e.target.value);
 

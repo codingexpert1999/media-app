@@ -876,6 +876,30 @@ footer{
                     color: #333;
                 }
             }
+
+            .typing{
+                // background: #f4f4f4;
+                color: #333;
+                // padding: 5px 8px;
+                border-radius: 3px;
+                text-align: center;
+                width: fit-content;
+                letter-spacing: 0.4px;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+
+                span{
+                    transform-origin: left center;
+                    overflow: hidden;
+                    display: inline-block;
+                    animation-name: typing;
+                    animation-duration: 3s;
+                    animation-iteration-count: infinite;
+                    animation-play-state: running;
+                    animation-delay: 0s;
+                }
+            }
         }
     
         .conversation-bottom{
@@ -942,6 +966,11 @@ footer{
             width: 180px;
         }
     }
+}
+
+@keyframes typing{
+    from{width: 0%;}
+    to{width: 100%;}
 }
 
 .messages{

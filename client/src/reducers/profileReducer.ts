@@ -17,7 +17,8 @@ import {
     READ_NOTIFICATIONS,
     DELETE_NOTIFICATION,
     GET_NEW_NOTIFICATIONS,
-    CHANGE_USER_ACTIVITY
+    CHANGE_USER_ACTIVITY,
+    UPDATE_FRIENDS_ACTIVITY
 } from "../actionTypes/profileActionTypes";
 import { LOG_OUT } from "../actionTypes/userActionTypes";
 import { ProfilePayload, ProfileState } from "../interfaces/profile";
@@ -50,7 +51,7 @@ const initialState: ProfileState = {
     searchResults: [],
     searchMatches: [],
     showSearchingResults: false,
-    canClickRequestButton: true
+    canClickRequestButton: true,
 };
 
 const profileReducer = (state=initialState, action: {type:string, payload: ProfilePayload}) => {
@@ -61,6 +62,7 @@ const profileReducer = (state=initialState, action: {type:string, payload: Profi
     let sendedFriendRequests = state.sendedFriendRequests
     let friendRequests = state.friendRequests;
     let notifications = state.notifications;
+    let friends = state.friends;
 
     switch(type){
         case FETCH_PROFILE:
@@ -128,6 +130,12 @@ const profileReducer = (state=initialState, action: {type:string, payload: Profi
         case CHANGE_USER_ACTIVITY:
             profile.is_active = payload.isActive;
             return {...state, profile}
+        case UPDATE_FRIENDS_ACTIVITY:
+            payload.changedFriendsActivity.forEach(changedActivity => {
+                friends[changedActivity.index].is_active = changedActivity.is_active;
+            })
+
+            return {...state, friends}
         default:
             return state;
     }

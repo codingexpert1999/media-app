@@ -75,63 +75,126 @@ io.on("connection", socket => {
         redisClient.set(socket.id, convoId + "");
     })
 
-    socket.on("message", (convoId: number, profileId: number, message: string, isIcon: boolean) => {
-        let messageObj: Message = {
-            id: Date.now(),
-            message,
-            profile_id: profileId,
-            seen: 0,
-            conversation_id: convoId,
-            is_icon: isIcon ? 1 : 0,
-            created_at: new Date().toISOString()
-        }
-
-        io.to("convo-"+convoId).emit("new-message", messageObj);
-
-        try {
-            let query = "";
-
-            if(isIcon){
-                query = `
-                    INSERT INTO messages(message, profile_id, conversation_id, is_icon) 
-                    VALUES('${message}', ${profileId}, ${convoId}, TRUE)
-                `;
-            }else{
-                query = `
-                    INSERT INTO messages(message, profile_id, conversation_id) 
-                    VALUES('${message}', ${profileId}, ${convoId})
-                `;
-            }
-            
-            db.query(query, (err: MysqlError) => {
-                if(err) throw err;
-
-                redisClient.get(profileId + "-conversations", (err, reply) => {
-                    if(err) throw err;
-
-                    let conversations = JSON.parse(reply + "") as Convo[];
-
-                    conversations = conversations.map(convo => {
-                        if(convo.id === convoId){
-                            convo.lastMessage = messageObj;
-                        }
-
-                        return convo;
-                    })
-
-                    redisClient.setex(profileId + "-conversations", 3600 * 2, JSON.stringify(conversations))
-                })
-            })
-        } catch (err) {
-            console.log(err);
-        }
-    })
-
-    socket.on("disconnect", () => {
+    socket.on("message", (profileId: number, friendProfileId: number, message: string, isIcon: boolean) => {
         redisClient.get(socket.id, (err, reply) => {
             if(err) throw err;
 
-            subscriber.unsubscribe("convo-" + reply);
+            if(reply){
+                let convoId = parseInt(reply);
+
+                let messageObj: Message = {
+                    id: Date.now(),
+                    message,
+                    profile_id: profileId,
+                    seen: 0,
+                    conversation_id: convoId,
+                    is_icon: isIcon ? 1 : 0,
+                    created_at: new Date().toISOString()
+                }
+
+                io.to("convo-"+convoId).emit("new-message", messageObj);
+        
+                try {
+                    let query = "";
+        
+                    if(isIcon){
+                        query = `
+                            INSERT INTO messages(message, profile_id, conversation_id, is_icon) 
+                            VALUES('${message}', ${profileId}, ${convoId}, TRUE)
+                        `;
+                    }else{
+                        query = `
+                            INSERT INTO messages(message, profile_id, conversation_id) 
+                            VALUES('${message}', ${profileId}, ${convoId})
+                        `;
+                    }
+                    
+                    db.query(query, (err: MysqlError) => {
+                        if(err) throw err;
+        
+                        redisClient.get(profileId + "-conversations", (err, reply) => {
+                            if(err) throw err;
+
+                            let conversations: Convo[];
+
+                            if(reply){
+                                conversations = JSON.parse(reply + "") as Convo[];
+
+                                if(conversations.length > 0){
+                                    let convosChanged = false;
+
+                                    for(let i = 0; i < conversations.length; i++){
+                                        if(conversations[i].id === convoId){
+                                            conversations[i].lastMessage = messageObj;
+                                            convosChanged = true;
+                                        }
+                                    }
+    
+                                    if(convosChanged){
+                                        redisClient.setex(profileId + "-convos-changed", 3600 * 2, 'true')
+                                        redisClient.setex(profileId + "-conversations", 3600 * 2, JSON.stringify(conversations))
+                                    }
+                                }else{
+                                    redisClient.setex(profileId + "-convos-changed", 3600 * 2, 'true')
+                                }
+                            }else{
+                                redisClient.setex(profileId + "-convos-changed", 3600 * 2, 'true')
+                            }
+                        })
+
+                        redisClient.get(friendProfileId + "-conversations", (err, reply) => {
+                            if(err) throw err;
+        
+                            let conversations: Convo[];
+
+                            if(reply){
+                                conversations = JSON.parse(reply + "") as Convo[];
+
+                                if(conversations.length > 0){
+                                    let convosChanged = false;
+
+                                    for(let i = 0; i < conversations.length; i++){
+                                        if(conversations[i].id === convoId){
+                                            conversations[i].lastMessage = messageObj;
+                                            convosChanged = true;
+                                        }
+                                    }
+    
+                                    if(convosChanged){
+                                        redisClient.setex(friendProfileId + "-convos-changed", 3600 * 2, 'true')
+                                        redisClient.setex(friendProfileId + "-conversations", 3600 * 2, JSON.stringify(conversations))
+                                    }
+                                }else{
+                                    redisClient.setex(friendProfileId + "-convos-changed", 3600 * 2, 'true')
+                                }
+                            }else{
+                                redisClient.setex(friendProfileId + "-convos-changed", 3600 * 2, 'true')
+                            }
+                        })
+                    })
+                } catch (err) {
+                    console.log(err);
+                }
+            }
+        })
+    })
+
+    socket.on('typing', (profileId, isTyping: boolean) => {
+        redisClient.get(socket.id, (err, reply) => {
+            if(err) throw err;
+
+            if(reply){
+                let convoId = parseInt(reply);
+
+                io.to("convo-"+convoId).emit(profileId + "-is-typing", isTyping);
+            }
+        })
+    })
+
+    socket.on("disconnect", async () => {
+        redisClient.get(socket.id, (err, reply) => {
+            if(err) throw err;
+
             redisClient.del(socket.id);
         })
     })

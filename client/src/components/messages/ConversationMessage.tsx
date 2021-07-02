@@ -4,7 +4,11 @@ import { State } from '../../interfaces'
 import { Message } from '../../interfaces/conversation'
 import Moment from 'react-moment'
 
-const ConversationMessage = (props: {message: Message; prevMessage: Message | null; isLastMessage: boolean}) => {
+const ConversationMessage = (props: {
+    message: Message; 
+    prevMessage: Message | null; 
+    isLastMessage: boolean; 
+}) => {
     const {profile} = useSelector((state: State) => state.profile);
 
     const sended = props.message.profile_id === profile.id;

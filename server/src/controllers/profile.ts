@@ -2,7 +2,7 @@ import {MysqlError} from 'mysql';
 import {Request, Response} from 'express';
 import db from '../config/db';
 import {validationResult} from 'express-validator';
-import { Friendship, Notification } from '../interfaces';
+import { Friend, Notification } from '../interfaces';
 import { getAsyncMysqlResult } from '../helper';
 import redisClient from '../config/redis'
 
@@ -99,6 +99,9 @@ export const acceptFriendRequest = (req: Request, res: Response) => {
                 db.query(query, (err: MysqlError) => {
                     if(err) throw err;
 
+                    redisClient.setex(`${req.profile.id}-friends-changed`, 3600 * 2, 'true');
+                    redisClient.setex(`${senderProfileId}-friends-changed`, 3600 * 2, 'true');
+
                     res.json({message: `You have accepted the friend request from profile with ID=${senderProfileId}`});
                 })
             })
@@ -156,7 +159,7 @@ export const getNewNotifications = (req: Request, res: Response) => {
     try {
         let count = 0;
 
-        redisClient.get(`${req.profile.id}-reqCount`, (err, reply) => {
+        redisClient.get(`${req.profile.id}-notifReqCount`, (err, reply) => {
             if(reply){
                 count = parseInt(reply);
             }
@@ -165,11 +168,11 @@ export const getNewNotifications = (req: Request, res: Response) => {
 
             if(count === 10){
                 count = 0;
-                redisClient.setex(`${req.profile.id}-reqCount`, 3600, JSON.stringify(count));
+                redisClient.setex(`${req.profile.id}-notifReqCount`, 3600, JSON.stringify(count));
                 return res.json({message: "No data. Request ended"})
             }
 
-            redisClient.setex(`${req.profile.id}-reqCount`, 3600, JSON.stringify(count));
+            redisClient.setex(`${req.profile.id}-notifReqCount`, 3600, JSON.stringify(count));
 
             let query = `
                 SELECT n.id, n.notification_type, n.notification, n.sender_profile_id, n.seen, n.created_at, p.profile_image
@@ -256,30 +259,53 @@ export const getSendedFriendRequests = (req: Request, res: Response) => {
 
 export const getFriends = (req: Request, res: Response) => {
     try {
-        let query = `
-            SELECT f.id, f.my_profile_id, f.friend_profile_id, u.username, p.is_active FROM friends AS f 
-            INNER JOIN profiles AS p ON (f.my_profile_id=p.id OR f.friend_profile_id=p.id)
-            INNER JOIN users AS u ON u.id=p.user_id
-            WHERE (f.my_profile_id=${req.profile.id} OR f.friend_profile_id=${req.profile.id}) AND username!='${req.user.username}'
-        `;
-
-        db.query(query, (err: MysqlError, result) => {
+        redisClient.get(`${req.profile.id}-friends-changed`, (err, reply) => {
             if(err) throw err;
 
-            let friends = result.map((friendship: Friendship) => {
-                let friend_profile_id: number;
+            if(reply){
+                let query = `
+                    SELECT f.id, IF(f.friend_profile_id=${req.profile.id}, f.my_profile_id, f.friend_profile_id) as friend_profile_id, 
+                    p.is_active, u.username FROM friends AS f 
+                    INNER JOIN profiles AS p ON (f.my_profile_id=p.id OR f.friend_profile_id=p.id)
+                    INNER JOIN users AS u ON u.id=p.user_id
+                    WHERE (f.my_profile_id=${req.profile.id} OR f.friend_profile_id=${req.profile.id}) AND username!='${req.user.username}'
+                `;
+        
+                db.query(query, (err: MysqlError, result) => {
+                    if(err) throw err;
 
-                if(friendship.my_profile_id === req.profile.id){
-                    friend_profile_id = friendship.friend_profile_id
-                }else{
-                    friend_profile_id = friendship.my_profile_id;
-                }
+                    redisClient.setex(`${req.profile.id}-friends`, 3600 * 2, JSON.stringify(result));
+                    redisClient.del(`${req.profile.id}-friends-changed`);
+        
+                    res.json(result);
+                })
+            }else{
+                redisClient.get(`${req.profile.id}-friends`, (err, reply) => {
+                    if(err) throw err;
 
-                return {id: friendship.id, friend_profile_id, username: friendship.username, is_active: friendship.is_active};
-            })
-
-            res.json(friends);
+                    if(reply){
+                        return res.json(JSON.parse(reply))
+                    }else{
+                        let query = `
+                            SELECT f.id, IF(f.friend_profile_id=${req.profile.id}, f.my_profile_id, f.friend_profile_id) as friend_profile_id, 
+                            p.is_active, u.username FROM friends AS f 
+                            INNER JOIN profiles AS p ON (f.my_profile_id=p.id OR f.friend_profile_id=p.id)
+                            INNER JOIN users AS u ON u.id=p.user_id
+                            WHERE (f.my_profile_id=${req.profile.id} OR f.friend_profile_id=${req.profile.id}) AND username!='${req.user.username}'
+                        `;
+                
+                        db.query(query, (err: MysqlError, result) => {
+                            if(err) throw err;
+        
+                            redisClient.setex(`${req.profile.id}-friends`, 3600 * 2, JSON.stringify(result));
+                
+                            res.json(result);
+                        })
+                    }
+                })
+            }
         })
+        
     } catch (err) {
         console.log(err);
         res.status(500).json({error: err.message})
@@ -478,6 +504,9 @@ export const removeFriend = (req: Request, res: Response) => {
                 db.query(query, (err: MysqlError) => {
                     if(err) throw err;
 
+                    redisClient.setex(`${req.profile.id}-friends-changed`, 3600 * 2, 'true');
+                    redisClient.setex(`${otherProfileId}-friends-changed`, 3600 * 2, 'true');
+
                     res.json({message: "Friend deleted successfully!"});
                 })
             })
@@ -540,6 +569,87 @@ export const changeActivity = (req: Request, res: Response) => {
             if(err) throw err;
 
             res.json({message: "User activity changed successfully"});
+        })
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({error: err.message});
+    }
+}
+
+export const checkFriendsActivity = (req: Request, res: Response) => {
+    try {
+        redisClient.get(`${req.profile.id}-friendsReqCount`, (err, reply) => {
+            if(err) throw err;
+
+            let friendsReqCount = 0;
+
+            if(reply){
+                friendsReqCount = parseInt(reply)
+            }
+
+            friendsReqCount++;
+
+            if(friendsReqCount === 10){
+                friendsReqCount = 0;
+                redisClient.setex(`${req.profile.id}-friendsReqCount`, 3600, JSON.stringify(friendsReqCount));
+                return res.json({message: "No change detected."})
+            }
+
+            redisClient.setex(`${req.profile.id}-friendsReqCount`, 3600, JSON.stringify(friendsReqCount));
+
+            redisClient.get(`${req.profile.id}-friends`, (err, reply) => {
+                if(err) throw err;
+    
+                if(reply){
+                    let friends = JSON.parse(reply + "") as Friend[];
+    
+                    let query = `
+                        SELECT f.id, IF(f.friend_profile_id=${req.profile.id}, f.my_profile_id, f.friend_profile_id) as friend_profile_id, 
+                        p.is_active, u.username FROM friends AS f 
+                        INNER JOIN profiles AS p ON (f.my_profile_id=p.id OR f.friend_profile_id=p.id)
+                        INNER JOIN users AS u ON u.id=p.user_id
+                        WHERE (f.my_profile_id=${req.profile.id} OR f.friend_profile_id=${req.profile.id}) AND username!='${req.user.username}'
+                    `;
+            
+                    db.query(query, (err: MysqlError, result) => {
+                        if(err) throw err;
+
+                        let changes = []
+    
+                        for(let i = 0; i < result.length; i++){
+                            if(result[i].is_active !== friends[i].is_active){
+                                changes.push({index: i, is_active: result[i].is_active})
+                            }
+                        }
+
+                        if(changes.length > 0){
+                            redisClient.setex(`${req.profile.id}-friends`, 3600 * 2, JSON.stringify(result));
+                            redisClient.setex(`${req.profile.id}-friends-changed`, 3600 * 2, 'false');
+    
+                            return res.json(changes);
+                        }else{
+                            setTimeout(() => { checkFriendsActivity(req, res) }, 10000);
+                        }
+                    })
+                }else{
+                    let query = `
+                        SELECT f.id, IF(f.friend_profile_id=${req.profile.id}, f.my_profile_id, f.friend_profile_id) as friend_profile_id, 
+                        p.is_active, u.username FROM friends AS f 
+                        INNER JOIN profiles AS p ON (f.my_profile_id=p.id OR f.friend_profile_id=p.id)
+                        INNER JOIN users AS u ON u.id=p.user_id
+                        WHERE (f.my_profile_id=${req.profile.id} OR f.friend_profile_id=${req.profile.id}) AND username!='${req.user.username}'
+                    `;
+            
+                    db.query(query, (err: MysqlError, result) => {
+                        if(err) throw err;
+    
+                        redisClient.setex(`${req.profile.id}-friends`, 3600 * 2, JSON.stringify(result));
+                        redisClient.setex(`${req.profile.id}-friends-changed`, 3600 * 2, 'false');
+    
+                        setTimeout(() => { checkFriendsActivity(req, res) }, 10000);
+                    })
+                }
+            })
         })
     } catch (err) {
         console.log(err);

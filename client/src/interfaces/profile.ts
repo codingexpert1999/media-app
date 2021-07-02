@@ -27,6 +27,7 @@ export interface ProfilePayload{
     senderProfileId: number;
     notificationId: number;
     isActive: number;
+    changedFriendsActivity: ChangedFriendActivity[]
 }
 
 export interface Profile{
@@ -75,4 +76,9 @@ export interface SearchedProfile{
 
 export interface SearchMatch{
     username: string;
+}
+
+export interface ChangedFriendActivity{
+    index: number;
+    is_active: number;
 }

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { 
     changeUserActivity, 
@@ -23,7 +23,7 @@ import Notifications from '../modals/notification/Notifications'
 import axios from 'axios'
 import { API } from '../../helper'
 import { toast } from 'react-toastify'
-import { GET_NEW_NOTIFICATIONS } from '../../actionTypes/profileActionTypes'
+import { GET_NEW_NOTIFICATIONS, UPDATE_FRIENDS_ACTIVITY } from '../../actionTypes/profileActionTypes'
 import Conversation from '../messages/Conversation'
 import Messages from '../modals/messages/Messages'
 import { getConversations } from '../../actions/conversationActions'
@@ -36,10 +36,7 @@ const Dashboard = () => {
 
     const dispatch = useDispatch();
 
-    const [showSearchProfile, setShowSearchProfile] = useState(false);
-
-    const longPolling = () => {
-        console.log(user.id, profile.id)
+    const checkForNewNotifications = () => {
         axios
         .get(`${API}/profile/new_notifications/${user.id}/${profile.id}`, {withCredentials: true})
         .then(res => {
@@ -47,11 +44,27 @@ const Dashboard = () => {
                 dispatch({type: GET_NEW_NOTIFICATIONS, payload: {notifications: res.data}})
             }
 
-            longPolling();
+            checkForNewNotifications();
         })
         .catch(err => {
             toast.error(err.message)
-            longPolling()
+            checkForNewNotifications()
+        })
+    }
+
+    const checkForFriendsChangeInActivity = () => {
+        axios
+        .get(`${API}/profile/friends/change_in_activity/${user.id}/${profile.id}`, {withCredentials: true})
+        .then(res => {
+            if(!res.data.message){
+                dispatch({type: UPDATE_FRIENDS_ACTIVITY, payload: {changedFriendsActivity: res.data}});
+            }
+
+            checkForFriendsChangeInActivity()
+        })
+        .catch(err => {
+            toast.error(err.message);
+            checkForFriendsChangeInActivity()
         })
     }
 
@@ -71,7 +84,8 @@ const Dashboard = () => {
             dispatch(changeUserActivity(user.id, profile.id, 1));
             dispatch(getConversations(user.id, profile.id))
 
-            // longPolling()
+            // checkForNewNotifications()
+            // checkForFriendsChangeInActivity()
         }
     }, [profile, dispatch])
 

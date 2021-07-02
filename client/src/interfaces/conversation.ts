@@ -4,6 +4,8 @@ export interface ConversationState{
     currentConversation: Conversation | null;
     loading: boolean;
     convos: Convo[];
+    starting: number;
+    hasMoreMessagesToLoad: boolean;
 }
 
 export interface ConversationPayload{
@@ -12,6 +14,9 @@ export interface ConversationPayload{
     conversation: Conversation | null;
     message: Message;
     convos: Convo[];
+    convoId: number;
+    profileId: number;
+    hasMoreMessagesToLoad: boolean;
 }
 
 export interface Conversation{
