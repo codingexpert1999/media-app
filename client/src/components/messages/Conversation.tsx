@@ -39,6 +39,7 @@ const Conversation = () => {
     const [imTyping, setImTyping] = useState(false);
     const [messagesLoaded, setMessagesLoaded] = useState(false);
     const [scrollHeight, setScrollHeight] = useState(0)
+    const [messageSend, setMessageSend] = useState(false)
 
     const onEmojiClick = (e: React.MouseEvent<Element, MouseEvent>, data: IEmojiData) => {
         setMessage(message + data.emoji);
@@ -71,12 +72,14 @@ const Conversation = () => {
         }
 
         setMessage("");
+        setMessageSend(true)
     }
 
     const sendIcon = () => {
         if(socketClient.current && currentConversation){
             socketClient.current.emit("message", profile.id, currentConversation.friendId, "👍", true);
         }
+        setMessageSend(true)
     }
 
     const scrollToBottom = () => {
@@ -165,20 +168,19 @@ const Conversation = () => {
     }, [currentConversation])
 
     useEffect(() => {
-        if(!messagesLoaded && messages.length > 0){
-            scrollToBottom()
-            setMessagesLoaded(true)
-        }
-
-        if(messagesLoaded && messages.length > 0){
-            scrollToPrevFirstMessage()
+        if(!messagesLoaded && messages.length > 0 && !messageSend){
+            scrollToBottom();
+            setMessagesLoaded(true);
+        }else if(messagesLoaded && messages.length > 0 && !messageSend){
+            scrollToPrevFirstMessage();
 
             if(conversationBodyRef.current){
                 setScrollHeight(conversationBodyRef.current.scrollHeight)
             }
+        }else{
+            scrollToBottom();
+            setMessageSend(false)
         }
-
-        scrollToBottom()
     }, [messages])
 
     useEffect(() => {

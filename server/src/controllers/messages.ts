@@ -34,7 +34,7 @@ export const readMessages = (req: Request, res: Response) => {
     try {
         let query = `
             UPDATE messages SET seen=FALSE 
-            WHERE conversation_id=${req.conversation.id} AND profile_id!=${req.profile.id} AND seen IS TRUE
+            WHERE conversation_id=${req.conversation.id} AND profile_id!=${req.profile.id} AND seen IS FALSE
         `;
 
         db.query(query, (err: MysqlError) => {

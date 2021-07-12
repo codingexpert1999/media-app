@@ -624,7 +624,6 @@ export const checkFriendsActivity = (req: Request, res: Response) => {
 
                         if(changes.length > 0){
                             redisClient.setex(`${req.profile.id}-friends`, 3600 * 2, JSON.stringify(result));
-                            redisClient.setex(`${req.profile.id}-friends-changed`, 3600 * 2, 'false');
     
                             return res.json(changes);
                         }else{
@@ -644,7 +643,6 @@ export const checkFriendsActivity = (req: Request, res: Response) => {
                         if(err) throw err;
     
                         redisClient.setex(`${req.profile.id}-friends`, 3600 * 2, JSON.stringify(result));
-                        redisClient.setex(`${req.profile.id}-friends-changed`, 3600 * 2, 'false');
     
                         setTimeout(() => { checkFriendsActivity(req, res) }, 10000);
                     })
