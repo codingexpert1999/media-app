@@ -181,6 +181,13 @@ const Conversation = () => {
             scrollToBottom();
             setMessageSend(false)
         }
+
+        let numberOfNewMessages = messages.slice(starting).length;
+
+        if(numberOfNewMessages < 15){
+            dispatch(setHasMoreMessagesToLoad(false))
+        }
+        
     }, [messages])
 
     useEffect(() => {
@@ -199,7 +206,7 @@ const Conversation = () => {
         <div className="conversation">
             <div className="conversation-container">
                 <div className="conversation-header">
-                    <img src="/assets/user.png" alt="Default User" />
+                    <img src="/assets/user.png" alt="Default User"/>
                     <div className="user">
                         <span className="username">{friend?.username || ""}</span>
                         <div className={friend?.is_active === 1 ? "user-activity active" : "user-activity"}>

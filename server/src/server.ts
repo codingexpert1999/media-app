@@ -171,6 +171,18 @@ io.on("connection", socket => {
                                 redisClient.setex(friendProfileId + "-convos-changed", 3600 * 2, 'true')
                             }
                         })
+
+                        redisClient.get(`${convoId}-messages`, (err, reply) => {
+                            if(err) throw err;
+
+                            if(reply){
+                                let messages = JSON.parse(reply) as Message[];
+
+                                messages.unshift(messageObj);
+
+                                redisClient.setex(`${convoId}-messages`, 3600 * 2, JSON.stringify(messages));
+                            }
+                        })
                     })
                 } catch (err) {
                     console.log(err);

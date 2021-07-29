@@ -50,6 +50,7 @@ export const getConversationMessages = (userId: number, profileId: number, convo
 
             dispatch({type: GET_CONVERSATION_MESSAGES, payload: {messages: res.data}})
         } catch (err) {
+            console.log(err)
             dispatch(setHasMoreMessagesToLoad(false))
         }finally{
             dispatch(setLoadingMessages(false));

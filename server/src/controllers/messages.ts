@@ -3,7 +3,7 @@ import { MysqlError } from 'mysql';
 import db from '../config/db';
 import redisClient from '../config/redis';
 import { getAsyncMysqlResult } from '../helper';
-import {Convo} from '../interfaces'
+import {Convo, Message} from '../interfaces'
 
 export const getConversation = (req: Request, res: Response) => {
     try {
@@ -50,17 +50,62 @@ export const readMessages = (req: Request, res: Response) => {
 
 export const getConversationMessages = (req: Request, res: Response) => {
     try {
-        let starting = req.query.starting || 0;
+        let starting = req.query.starting ? parseInt(req.query.starting + "") : 0;
 
-        let query = `
-            SELECT id, message, seen, is_icon, created_at, profile_id FROM messages
-            WHERE conversation_id=${req.conversation.id} ORDER BY created_at DESC LIMIT ${starting}, 15
-        `
-
-        db.query(query, (err: MysqlError, result) => {
+        redisClient.get(`${req.conversation.id}-messages`, (err, reply) => {
             if(err) throw err;
 
-            res.json(result);
+            if(reply){
+                let messages = JSON.parse(reply) as Message[];
+
+                if(starting >= messages.length){
+                    let query = `
+                        SELECT id, message, seen, is_icon, created_at, profile_id FROM messages
+                        WHERE conversation_id=${req.conversation.id} ORDER BY created_at DESC LIMIT ${starting}, 100
+                    `
+            
+                    db.query(query, (err: MysqlError, result) => {
+                        if(err) throw err;
+
+                        if(result.length === 0){
+                            return res.json([])
+                        }
+
+                        messages = [...messages, ...result]
+
+                        redisClient.setex(`${req.conversation.id}-messages`, 3600 * 2, JSON.stringify(messages));
+
+                        let ending = result.length - (starting + 15) >= 0 ? starting + 15 : (starting + 15) - (starting + 15 - result.length);
+
+                        let messagesToSend = messages.slice(starting, ending);
+
+                        res.json(messagesToSend);
+                    })
+                }else{
+                    let ending = messages.length - (starting + 15) >= 0 ? starting + 15 : (starting + 15) - (starting + 15 - messages.length);
+
+                    let messagesToSend = messages.slice(starting, ending);
+
+                    res.json(messagesToSend);
+                }
+            }else{
+                let query = `
+                    SELECT id, message, seen, is_icon, created_at, profile_id FROM messages
+                    WHERE conversation_id=${req.conversation.id} ORDER BY created_at DESC LIMIT 0, ${(starting / 15) * 100 + 100}
+                `
+        
+                db.query(query, (err: MysqlError, result) => {
+                    if(err) throw err;
+
+                    redisClient.setex(`${req.conversation.id}-messages`, 3600 * 2, JSON.stringify(result));
+
+                    let ending = result.length - (starting + 15) >= 0 ? starting + 15 : (starting + 15) - (starting + 15 - result.length);
+
+                    let messagesToSend = result.slice(starting, ending);
+
+                    res.json(messagesToSend);
+                })
+            }
         })
     } catch (err) {
         console.log(err);

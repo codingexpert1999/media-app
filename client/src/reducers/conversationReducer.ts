@@ -31,9 +31,9 @@ const conversationReducer = (state=initialState, action: {type: string; payload:
         case SET_SHOW_CONVERSATION:
             return {...state, showConversation: payload.showConversation}
         case SET_CURRENT_CONVERSATION:
-            return {...state, currentConversation: payload.conversation}
+            return {...state, currentConversation: payload.conversation, starting: 0, hasMoreMessagesToLoad: true}
         case GET_CONVERSATION_MESSAGES:
-            if(messages.length > 0 && payload.messages[payload.messages.length - 1].id === messages[0].id){
+            if(payload.messages.length === 0){
                 return state
             }
             

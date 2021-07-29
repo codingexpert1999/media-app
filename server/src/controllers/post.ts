@@ -2,45 +2,57 @@ import {MysqlError} from 'mysql';
 import {Request, Response} from 'express';
 import db from '../config/db';
 import { getAsyncMysqlResult } from '../helper';
+import redisClient from '../config/redis';
 
 export const fetch = (req: Request, res: Response) => {
     try {
-        let query = `
-            SELECT DISTINCT(p.id), p.post_text, p.post_image, p.post_video, p.likes, p.created_at, p.profile_id, u.username FROM posts as p 
-            LEFT JOIN friends as f ON f.my_profile_id=${req.profile.id} OR f.friend_profile_id=${req.profile.id}
-            INNER JOIN profiles as prof ON prof.id=p.profile_id 
-            INNER JOIN users as u ON u.id=prof.user_id
-            WHERE p.profile_id=${req.profile.id} OR (p.profile_id=f.friend_profile_id AND f.friend_profile_id!=${req.profile.id}) 
-            OR (p.profile_id=f.my_profile_id AND f.my_profile_id!=${req.profile.id}) ORDER BY p.created_at DESC LIMIT 0, 10;
-        `;
-
-        
-        db.query(query, async (err:MysqlError, result) => {
+        redisClient.get(`${req.profile.id}-all-posts`, (err, reply) => {
             if(err) throw err;
 
-            let posts = result;
+            if(reply){
+                let posts = JSON.parse(reply);
 
-            for(let i = 0; i < posts.length; i++){
-                query = `
-                SELECT c.id, c.comment_text, c.likes, c.created_at, c.profile_id, u.username FROM comments as c 
-                INNER JOIN profiles as p ON c.profile_id=p.id INNER JOIN users as u ON u.id=p.user_id
-                WHERE c.post_id=${posts[i].id} ORDER BY c.created_at DESC LIMIT 0, 3
+                res.json(posts);
+            }else{
+                let query = `
+                    SELECT DISTINCT(p.id), p.post_text, p.post_image, p.post_video, p.likes, p.created_at, p.profile_id, u.username FROM posts as p 
+                    LEFT JOIN friends as f ON f.my_profile_id=${req.profile.id} OR f.friend_profile_id=${req.profile.id}
+                    INNER JOIN profiles as prof ON prof.id=p.profile_id 
+                    INNER JOIN users as u ON u.id=prof.user_id
+                    WHERE p.profile_id=${req.profile.id} OR (p.profile_id=f.friend_profile_id AND f.friend_profile_id!=${req.profile.id}) 
+                    OR (p.profile_id=f.my_profile_id AND f.my_profile_id!=${req.profile.id}) ORDER BY p.created_at DESC
                 `;
-
-                posts[i].comments = await getAsyncMysqlResult(query);
-
-                for(let j = 0; j < posts[i].comments.length; j++){
-                    query = `
-                        SELECT a.id, a.answer_text, a.likes, a.created_at, a.profile_id, u.username FROM answers as a 
-                        INNER JOIN profiles as p ON a.profile_id=p.id INNER JOIN users as u ON u.id=p.user_id
-                        WHERE a.comment_id=${posts[i].comments[j].id} ORDER BY a.created_at DESC LIMIT 0, 3
-                    `;
-
-                    posts[i].comments[j].answers = await getAsyncMysqlResult(query);
-                }
-            }
                 
-            res.json(posts);
+                db.query(query, async (err:MysqlError, result) => {
+                    if(err) throw err;
+
+                    let posts = result;
+
+                    for(let i = 0; i < posts.length; i++){
+                        query = `
+                        SELECT c.id, c.comment_text, c.likes, c.created_at, c.profile_id, u.username FROM comments as c 
+                        INNER JOIN profiles as p ON c.profile_id=p.id INNER JOIN users as u ON u.id=p.user_id
+                        WHERE c.post_id=${posts[i].id} ORDER BY c.created_at DESC LIMIT 0, 3
+                        `;
+
+                        posts[i].comments = await getAsyncMysqlResult(query);
+
+                        for(let j = 0; j < posts[i].comments.length; j++){
+                            query = `
+                                SELECT a.id, a.answer_text, a.likes, a.created_at, a.profile_id, u.username FROM answers as a 
+                                INNER JOIN profiles as p ON a.profile_id=p.id INNER JOIN users as u ON u.id=p.user_id
+                                WHERE a.comment_id=${posts[i].comments[j].id} ORDER BY a.created_at DESC LIMIT 0, 3
+                            `;
+
+                            posts[i].comments[j].answers = await getAsyncMysqlResult(query);
+                        }
+                    }
+
+                    redisClient.setex(`${req.profile.id}-all-posts`, 60 * 10, JSON.stringify(posts))
+
+                    res.json(posts);
+                })
+            }
         })
     } catch (err) {
         console.log(err);
@@ -73,6 +85,8 @@ export const create = (req: Request, res: Response) => {
                 post.comments = []
                 post.username = req.user.username;
 
+                redisClient.setex(`${req.profile.id}-posts-changed`, 3600 * 2, 'true');
+
                 res.json(post);
             })
         })
@@ -104,6 +118,8 @@ export const update = (req: Request, res: Response) => {
         db.query(query, (err:MysqlError) => {
             if(err) throw err;
 
+            redisClient.setex(`${req.profile.id}-posts-changed`, 3600 * 2, 'true');
+
             res.json({message: "Post updated successfully!"})
         })
     } catch (err) {
@@ -118,6 +134,8 @@ export const remove = (req: Request, res: Response) => {
 
         db.query(query, (err:MysqlError) => {
             if(err) throw err;
+
+            redisClient.setex(`${req.profile.id}-posts-changed`, 3600 * 2, 'true');
 
             res.json({message: "Post deleted successfully!"})
         })
@@ -175,6 +193,8 @@ export const like = (req: Request, res: Response) => {
 
                                 db.query(query, (err) => {
                                     if(err) throw err;
+
+                                    redisClient.setex(`${req.post.profile_id}-posts-changed`, 3600 * 2, 'true');
     
                                     res.json({message: "Post liked"})
                                 })
@@ -191,6 +211,8 @@ export const like = (req: Request, res: Response) => {
 
                             db.query(query, (err) => {
                                 if(err) throw err;
+
+                                redisClient.setex(`${req.post.profile_id}-posts-changed`, 3600 * 2, 'true');
 
                                 res.json({message: "Post liked"})
                             })
@@ -241,10 +263,14 @@ export const unlike = (req: Request, res: Response) => {
                         db.query(query, (err) => {
                             if(err) throw err;
 
+                            redisClient.setex(`${req.post.profile_id}-posts-changed`, 3600 * 2, 'true');
+
                             res.json({message: "Post unliked"})
                         })
                     })
                 }else{
+                    redisClient.setex(`${req.post.profile_id}-posts-changed`, 3600 * 2, 'true');
+                    
                     res.json({message: "Post unliked"})
                 }
             })

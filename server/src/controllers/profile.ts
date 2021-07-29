@@ -345,38 +345,93 @@ export const fetchProfilePosts =(req: Request, res: Response) => {
     try {
         let profileId = parseInt(req.params.currentProfile);
 
-        let query = `
-            SELECT p.id, p.post_text, p.post_image, p.post_video, p.likes, p.created_at, u.username FROM posts as p 
-            INNER JOIN profiles as prof ON prof.id=p.profile_id INNER JOIN users as u ON u.id=prof.user_id
-            WHERE p.profile_id=${profileId} ORDER BY p.created_at DESC LIMIT 0, 10
-        `;
-
-        db.query(query, async (err: MysqlError, result) => {
+        redisClient.get(`${profileId}-posts-changed`, (err, reply) => {
             if(err) throw err;
 
-            let posts = result;
-
-            for(let i = 0; i < posts.length; i++){
-                query = `
-                SELECT c.id, c.comment_text, c.likes, c.created_at, c.profile_id, u.username FROM comments as c 
-                INNER JOIN profiles as p ON c.profile_id=p.id INNER JOIN users as u ON u.id=p.user_id
-                WHERE c.post_id=${posts[i].id} ORDER BY c.created_at DESC LIMIT 0, 3
+            if(reply){
+                let query = `
+                    SELECT p.id, p.post_text, p.post_image, p.post_video, p.likes, p.created_at, u.username FROM posts as p 
+                    INNER JOIN profiles as prof ON prof.id=p.profile_id INNER JOIN users as u ON u.id=prof.user_id
+                    WHERE p.profile_id=${profileId} ORDER BY p.created_at DESC LIMIT 0, 10
                 `;
+        
+                db.query(query, async (err: MysqlError, result) => {
+                    if(err) throw err;
+        
+                    let posts = result;
+        
+                    for(let i = 0; i < posts.length; i++){
+                        query = `
+                        SELECT c.id, c.comment_text, c.likes, c.created_at, c.profile_id, u.username FROM comments as c 
+                        INNER JOIN profiles as p ON c.profile_id=p.id INNER JOIN users as u ON u.id=p.user_id
+                        WHERE c.post_id=${posts[i].id} ORDER BY c.created_at DESC LIMIT 0, 3
+                        `;
+        
+                        posts[i].comments = await getAsyncMysqlResult(query);
+        
+                        for(let j = 0; j < posts[i].comments.length; j++){
+                            query = `
+                                SELECT a.id, a.answer_text, a.likes, a.created_at, a.profile_id, u.username FROM answers as a 
+                                INNER JOIN profiles as p ON a.profile_id=p.id INNER JOIN users as u ON u.id=p.user_id
+                                WHERE a.comment_id=${posts[i].comments[j].id} ORDER BY a.created_at DESC LIMIT 0, 3
+                            `;
+        
+                            posts[i].comments[j].answers = await getAsyncMysqlResult(query);
+                        }
+                    }
 
-                posts[i].comments = await getAsyncMysqlResult(query);
+                    redisClient.setex(`${profileId}-posts`, 3600 * 2, JSON.stringify(posts));
+                    redisClient.del(`${profileId}-posts-changed`)
+        
+                    res.json(posts);
+                })
+            }else{
+                redisClient.get(`${profileId}-posts`, (err, reply) => {
+                    if(err) throw err;
 
-                for(let j = 0; j < posts[i].comments.length; j++){
-                    query = `
-                        SELECT a.id, a.answer_text, a.likes, a.created_at, a.profile_id, u.username FROM answers as a 
-                        INNER JOIN profiles as p ON a.profile_id=p.id INNER JOIN users as u ON u.id=p.user_id
-                        WHERE a.comment_id=${posts[i].comments[j].id} ORDER BY a.created_at DESC LIMIT 0, 3
-                    `;
+                    if(reply){
+                        let posts = JSON.parse(reply);
+                        res.json(posts)
+                    }else{
+                        let query = `
+                            SELECT p.id, p.post_text, p.post_image, p.post_video, p.likes, p.created_at, u.username FROM posts as p 
+                            INNER JOIN profiles as prof ON prof.id=p.profile_id INNER JOIN users as u ON u.id=prof.user_id
+                            WHERE p.profile_id=${profileId} ORDER BY p.created_at DESC LIMIT 0, 10
+                        `;
+                
+                        db.query(query, async (err: MysqlError, result) => {
+                            if(err) throw err;
+                
+                            let posts = result;
+                
+                            for(let i = 0; i < posts.length; i++){
+                                query = `
+                                    SELECT c.id, c.comment_text, c.likes, c.created_at, c.profile_id, u.username FROM comments as c 
+                                    INNER JOIN profiles as p ON c.profile_id=p.id INNER JOIN users as u ON u.id=p.user_id
+                                    WHERE c.post_id=${posts[i].id} ORDER BY c.created_at DESC LIMIT 0, 3
+                                `;
+                    
+                                posts[i].comments = await getAsyncMysqlResult(query);
+                    
+                                for(let j = 0; j < posts[i].comments.length; j++){
+                                        query = `
+                                            SELECT a.id, a.answer_text, a.likes, a.created_at, a.profile_id, u.username FROM answers as a 
+                                            INNER JOIN profiles as p ON a.profile_id=p.id INNER JOIN users as u ON u.id=p.user_id
+                                            WHERE a.comment_id=${posts[i].comments[j].id} ORDER BY a.created_at DESC LIMIT 0, 3
+                                        `;
+                        
+                                        posts[i].comments[j].answers = await getAsyncMysqlResult(query);
+                                    }
+                            }
 
-                    posts[i].comments[j].answers = await getAsyncMysqlResult(query);
-                }
+                            redisClient.setex(`${profileId}-posts`, 3600 * 2, JSON.stringify(posts));
+                            redisClient.del(`${profileId}-posts-changed`)
+                    
+                            res.json(posts);
+                        })
+                    }
+                })
             }
-
-            res.json(posts);
         })
     } catch (err) {
         console.log(err)
