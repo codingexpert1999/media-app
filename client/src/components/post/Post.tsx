@@ -71,7 +71,7 @@ const Post = (props: {post: PostObj, post_index: number}) => {
                         dispatch(setCurrentProfileUsername(props.post.username))
                         history.push(`/profile/${props.post.profile_id}`)
                     }}>
-                        <img src="/assets/user.png" className="img-fluid" alt="Default User"/> {props.post.username}
+                        <img src={props.post.profile_image} className="img-fluid" alt="Default User"/> {props.post.username}
                     </span> 
 
                     <span className="time-posted"><Moment format="D MMMM YYYY hh:mm">{props.post.created_at}</Moment></span>

@@ -10,6 +10,7 @@ declare global {
             profile: Profile;
             authToken: string;
             conversation: Conversation;
+            imageName: string;
         }
     }
 }

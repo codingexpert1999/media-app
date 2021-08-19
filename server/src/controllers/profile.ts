@@ -5,6 +5,13 @@ import {validationResult} from 'express-validator';
 import { Friend, Notification } from '../interfaces';
 import { getAsyncMysqlResult } from '../helper';
 import redisClient from '../config/redis'
+import upload, { s3 } from '../libs/multer'
+import {config} from 'dotenv'
+
+config()
+
+const endpoint = process.env.DO_BUCKET_ENDPOINT || "";
+const bucket = process.env.DO_BUCKET_NAME || "";
 
 export const fetch = (req: Request, res: Response) => {
     try {
@@ -265,7 +272,7 @@ export const getFriends = (req: Request, res: Response) => {
             if(reply){
                 let query = `
                     SELECT f.id, IF(f.friend_profile_id=${req.profile.id}, f.my_profile_id, f.friend_profile_id) as friend_profile_id, 
-                    p.is_active, u.username FROM friends AS f 
+                    p.is_active, p.profile_image, u.username FROM friends AS f 
                     INNER JOIN profiles AS p ON (f.my_profile_id=p.id OR f.friend_profile_id=p.id)
                     INNER JOIN users AS u ON u.id=p.user_id
                     WHERE (f.my_profile_id=${req.profile.id} OR f.friend_profile_id=${req.profile.id}) AND username!='${req.user.username}'
@@ -288,7 +295,7 @@ export const getFriends = (req: Request, res: Response) => {
                     }else{
                         let query = `
                             SELECT f.id, IF(f.friend_profile_id=${req.profile.id}, f.my_profile_id, f.friend_profile_id) as friend_profile_id, 
-                            p.is_active, u.username FROM friends AS f 
+                            p.is_active, p.profile_image, u.username FROM friends AS f 
                             INNER JOIN profiles AS p ON (f.my_profile_id=p.id OR f.friend_profile_id=p.id)
                             INNER JOIN users AS u ON u.id=p.user_id
                             WHERE (f.my_profile_id=${req.profile.id} OR f.friend_profile_id=${req.profile.id}) AND username!='${req.user.username}'
@@ -350,7 +357,7 @@ export const fetchProfilePosts =(req: Request, res: Response) => {
 
             if(reply){
                 let query = `
-                    SELECT p.id, p.post_text, p.post_image, p.post_video, p.likes, p.created_at, u.username FROM posts as p 
+                    SELECT p.id, p.post_text, p.post_image, p.post_video, p.likes, p.created_at, prof.profile_image, u.username FROM posts as p 
                     INNER JOIN profiles as prof ON prof.id=p.profile_id INNER JOIN users as u ON u.id=prof.user_id
                     WHERE p.profile_id=${profileId} ORDER BY p.created_at DESC LIMIT 0, 10
                 `;
@@ -362,7 +369,7 @@ export const fetchProfilePosts =(req: Request, res: Response) => {
         
                     for(let i = 0; i < posts.length; i++){
                         query = `
-                        SELECT c.id, c.comment_text, c.likes, c.created_at, c.profile_id, u.username FROM comments as c 
+                        SELECT c.id, c.comment_text, c.likes, c.created_at, c.profile_id, p.profile_image, u.username FROM comments as c 
                         INNER JOIN profiles as p ON c.profile_id=p.id INNER JOIN users as u ON u.id=p.user_id
                         WHERE c.post_id=${posts[i].id} ORDER BY c.created_at DESC LIMIT 0, 3
                         `;
@@ -371,7 +378,7 @@ export const fetchProfilePosts =(req: Request, res: Response) => {
         
                         for(let j = 0; j < posts[i].comments.length; j++){
                             query = `
-                                SELECT a.id, a.answer_text, a.likes, a.created_at, a.profile_id, u.username FROM answers as a 
+                                SELECT a.id, a.answer_text, a.likes, a.created_at, a.profile_id, p.profile_image, u.username FROM answers as a 
                                 INNER JOIN profiles as p ON a.profile_id=p.id INNER JOIN users as u ON u.id=p.user_id
                                 WHERE a.comment_id=${posts[i].comments[j].id} ORDER BY a.created_at DESC LIMIT 0, 3
                             `;
@@ -394,7 +401,7 @@ export const fetchProfilePosts =(req: Request, res: Response) => {
                         res.json(posts)
                     }else{
                         let query = `
-                            SELECT p.id, p.post_text, p.post_image, p.post_video, p.likes, p.created_at, u.username FROM posts as p 
+                            SELECT p.id, p.post_text, p.post_image, p.post_video, p.likes, p.created_at, prof.profile_image, u.username FROM posts as p 
                             INNER JOIN profiles as prof ON prof.id=p.profile_id INNER JOIN users as u ON u.id=prof.user_id
                             WHERE p.profile_id=${profileId} ORDER BY p.created_at DESC LIMIT 0, 10
                         `;
@@ -406,7 +413,7 @@ export const fetchProfilePosts =(req: Request, res: Response) => {
                 
                             for(let i = 0; i < posts.length; i++){
                                 query = `
-                                    SELECT c.id, c.comment_text, c.likes, c.created_at, c.profile_id, u.username FROM comments as c 
+                                    SELECT c.id, c.comment_text, c.likes, c.created_at, c.profile_id, prof.profile_image, u.username FROM comments as c 
                                     INNER JOIN profiles as p ON c.profile_id=p.id INNER JOIN users as u ON u.id=p.user_id
                                     WHERE c.post_id=${posts[i].id} ORDER BY c.created_at DESC LIMIT 0, 3
                                 `;
@@ -415,7 +422,7 @@ export const fetchProfilePosts =(req: Request, res: Response) => {
                     
                                 for(let j = 0; j < posts[i].comments.length; j++){
                                         query = `
-                                            SELECT a.id, a.answer_text, a.likes, a.created_at, a.profile_id, u.username FROM answers as a 
+                                            SELECT a.id, a.answer_text, a.likes, a.created_at, a.profile_id, prof.profile_image, u.username FROM answers as a 
                                             INNER JOIN profiles as p ON a.profile_id=p.id INNER JOIN users as u ON u.id=p.user_id
                                             WHERE a.comment_id=${posts[i].comments[j].id} ORDER BY a.created_at DESC LIMIT 0, 3
                                         `;
@@ -439,7 +446,7 @@ export const fetchProfilePosts =(req: Request, res: Response) => {
     }
 }
 
-export const updateProfileDescription = (req: Request, res: Response) => {
+export const updateProfile = (req: Request, res: Response) => {
     try {
         const errors = validationResult(req);
 
@@ -447,17 +454,18 @@ export const updateProfileDescription = (req: Request, res: Response) => {
             return res.status(404).json({errors: errors.array()});
         }
 
-        const {description} = req.body;
+        const {description, status} = req.body;
 
-        let query = `UPDATE profiles SET profile_description='${description}' WHERE id=${req.profile.id}`;
+        let query = `UPDATE profiles SET profile_description='${description}', status='${status}' WHERE id=${req.profile.id}`;
 
         db.query(query, (err: MysqlError) => {
             if(err) throw err;
 
             req.profile.profile_description = description;
+            req.profile.status = status;
             req.session.profile = req.profile;
 
-            res.json({message: "Description updated successfully!"})
+            res.json({message: "Profile updated successfully!"})
         })
     } catch (err) {
         console.log(err)
@@ -707,5 +715,110 @@ export const checkFriendsActivity = (req: Request, res: Response) => {
     } catch (err) {
         console.log(err);
         res.status(500).json({error: err.message});
+    }
+}
+
+export const updateProfileImage = (req: Request, res: Response) => {
+    try {
+        upload(req, res, (err: any) => {
+            if(err) throw err
+
+            if(!req.imageName){
+                return res.status(400).json({error: "File is missing!"})
+            }
+
+            const image_path = "https://codingexpert-media-app.fra1.digitaloceanspaces.com/" + req.imageName;
+
+            let query = `UPDATE profiles SET profile_image='${image_path}' WHERE id=${req.profile.id}`
+
+            db.query(query, (err: MysqlError) => {
+                if(err) throw err;
+
+                query = `INSERT INTO profile_images(image_path, profile_id) VALUES('${image_path}', ${req.profile.id})`;
+
+                db.query(query, (err) => {
+                    if(err && err.code !== "ER_DUP_ENTRY") throw err;
+
+                    redisClient.del(`${req.profile.id}-profile-images`);
+
+                    req.profile.profile_image = image_path;
+                    req.session.profile = req.profile;
+
+                    res.json({profile_image: image_path})
+                })
+            })
+        })
+    } catch (err) {
+        console.log(err)
+        res.status(500).json({error: err.message});
+    }
+}
+
+export const getProfileImages = (req: Request, res: Response) => {
+    try {
+        let profileId = parseInt(req.params.currentProfile);
+
+        redisClient.get(`${profileId}-profile-images`, (err, reply) => {
+            if(err) throw err;
+
+            if(reply){
+                const images = JSON.parse(reply);
+
+                res.json(images)
+            }else{
+                let query = `SELECT id, image_path FROM profile_images WHERE profile_id=${profileId}`
+
+                db.query(query, (err, result) => {
+                    if(err) throw err;
+
+                    redisClient.setex(`${profileId}-profile-images`, 3600 * 2, JSON.stringify(result));
+
+                    res.json(result)
+                })
+            }
+        })
+    } catch (err) {
+        console.log(err)
+        res.status(500).json({error: err.message})
+    }
+}
+
+export const deleteProfileImage = (req: Request, res: Response) => {
+    try {
+        const errors = validationResult(req);
+
+        if(!errors.isEmpty()){
+            return res.status(400).json({errors: errors.array()});
+        }
+
+        const {image} = req.body;
+
+        s3.deleteObject({Bucket: bucket, Key: image}, (err, data) => {
+            if(err) throw err;
+
+            let query = `CALL deleteImage(${req.profile.id}, 'https://${bucket}.${endpoint}/${image}')`;
+
+            db.query(query, (err) => {
+                if(err) throw err;
+
+                query = `SELECT profile_image FROM profiles WHERE id=${req.profile.id}`;
+
+                db.query(query, (err, result) => {
+                    if(err) throw err;
+
+                    const profileImage = result[0].profile_image;
+
+                    if(profileImage !== req.profile.profile_image){
+                        req.profile.profile_image = profileImage;
+                        req.session.profile = req.profile;
+                    }
+
+                    res.json({profile_image: profileImage})
+                })
+            })
+        })
+    } catch (err) {
+        console.log(err)
+        res.status(500).json({error: err.message})
     }
 }

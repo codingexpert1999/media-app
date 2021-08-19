@@ -15,7 +15,7 @@ export const fetch = (req: Request, res: Response) => {
                 res.json(posts);
             }else{
                 let query = `
-                    SELECT DISTINCT(p.id), p.post_text, p.post_image, p.post_video, p.likes, p.created_at, p.profile_id, u.username FROM posts as p 
+                    SELECT DISTINCT(p.id), p.post_text, p.post_image, p.post_video, p.likes, p.created_at, p.profile_id, prof.profile_image, u.username FROM posts as p 
                     LEFT JOIN friends as f ON f.my_profile_id=${req.profile.id} OR f.friend_profile_id=${req.profile.id}
                     INNER JOIN profiles as prof ON prof.id=p.profile_id 
                     INNER JOIN users as u ON u.id=prof.user_id
@@ -30,7 +30,7 @@ export const fetch = (req: Request, res: Response) => {
 
                     for(let i = 0; i < posts.length; i++){
                         query = `
-                        SELECT c.id, c.comment_text, c.likes, c.created_at, c.profile_id, u.username FROM comments as c 
+                        SELECT c.id, c.comment_text, c.likes, c.created_at, c.profile_id, p.profile_image, u.username FROM comments as c 
                         INNER JOIN profiles as p ON c.profile_id=p.id INNER JOIN users as u ON u.id=p.user_id
                         WHERE c.post_id=${posts[i].id} ORDER BY c.created_at DESC LIMIT 0, 3
                         `;
@@ -39,7 +39,7 @@ export const fetch = (req: Request, res: Response) => {
 
                         for(let j = 0; j < posts[i].comments.length; j++){
                             query = `
-                                SELECT a.id, a.answer_text, a.likes, a.created_at, a.profile_id, u.username FROM answers as a 
+                                SELECT a.id, a.answer_text, a.likes, a.created_at, a.profile_id, p.profile_image, u.username FROM answers as a 
                                 INNER JOIN profiles as p ON a.profile_id=p.id INNER JOIN users as u ON u.id=p.user_id
                                 WHERE a.comment_id=${posts[i].comments[j].id} ORDER BY a.created_at DESC LIMIT 0, 3
                             `;

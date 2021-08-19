@@ -36,7 +36,7 @@ const FriendListItem = (props: {friend: Friend}) => {
             }
 
             <span>
-                <img src="/assets/user.png" className="img-fluid" alt="Default User"/>
+                <img src={props.friend.profile_image} className="img-fluid" alt="Default User"/>
                 <div className={props.friend.is_active === 0 ? "user-activity" : "user-activity active"}></div>
             </span>
 

@@ -4,7 +4,7 @@ import {
     FETCH_NOTIFICATIONS, 
     FETCH_PROFILE, 
     FETCH_CURRENT_PROFILE,
-    UPDATE_PROFILE_DESCRIPTION,
+    UPDATE_PROFILE,
     SET_CURRENT_PROFILE_USERNAME,
     FIND_USERNAME_MATCHES,
     CLEAR_MATCHES,
@@ -18,7 +18,10 @@ import {
     DELETE_NOTIFICATION,
     GET_NEW_NOTIFICATIONS,
     CHANGE_USER_ACTIVITY,
-    UPDATE_FRIENDS_ACTIVITY
+    UPDATE_FRIENDS_ACTIVITY,
+    FETCH_PROFILE_IMAGES,
+    DELETE_IMAGE,
+    UPDATE_PROFILE_IMAGE
 } from "../actionTypes/profileActionTypes";
 import { LOG_OUT } from "../actionTypes/userActionTypes";
 import { ProfilePayload, ProfileState } from "../interfaces/profile";
@@ -52,6 +55,7 @@ const initialState: ProfileState = {
     searchMatches: [],
     showSearchingResults: false,
     canClickRequestButton: true,
+    profileImages: []
 };
 
 const profileReducer = (state=initialState, action: {type:string, payload: ProfilePayload}) => {
@@ -63,6 +67,7 @@ const profileReducer = (state=initialState, action: {type:string, payload: Profi
     let friendRequests = state.friendRequests;
     let notifications = state.notifications;
     let friends = state.friends;
+    let profileImages = state.profileImages
 
     switch(type){
         case FETCH_PROFILE:
@@ -78,8 +83,9 @@ const profileReducer = (state=initialState, action: {type:string, payload: Profi
         case FETCH_CURRENT_PROFILE:
             currentProfile = {...currentProfile, ...payload.profile};
             return {...state, currentProfile};
-        case UPDATE_PROFILE_DESCRIPTION:
+        case UPDATE_PROFILE:
             profile.profile_description = payload.description
+            profile.status = payload.status;
             return {...state, profile};
         case SET_CURRENT_PROFILE_USERNAME:
             currentProfile.username = payload.username;
@@ -136,6 +142,21 @@ const profileReducer = (state=initialState, action: {type:string, payload: Profi
             })
 
             return {...state, friends}
+        case UPDATE_PROFILE_IMAGE:
+            profile.profile_image = payload.profile_image;
+            
+            const profileImage = {id: Date.now(), image_path: payload.profile_image};
+            profileImages.push(profileImage)
+
+            return {...state, profile, profileImages};
+        case FETCH_PROFILE_IMAGES:
+            return {...state, profileImages: payload.profileImages}
+        case DELETE_IMAGE:
+            profile.profile_image = payload.profile_image;
+
+            profileImages.splice(payload.currentImage, 1)
+
+            return {...state, profile, profileImages}
         default:
             return state;
     }

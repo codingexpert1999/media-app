@@ -9,6 +9,7 @@ export interface ProfileState{
     searchMatches: SearchMatch[];
     showSearchingResults: boolean;
     canClickRequestButton: boolean;
+    profileImages: ProfileImage[];
 }
 
 export interface ProfilePayload{
@@ -28,6 +29,10 @@ export interface ProfilePayload{
     notificationId: number;
     isActive: number;
     changedFriendsActivity: ChangedFriendActivity[]
+    profileImages: ProfileImage[];
+    status: string;
+    profile_image: string;
+    currentImage: number;
 }
 
 export interface Profile{
@@ -66,6 +71,7 @@ export interface Friend{
     friend_profile_id: number;
     username: string;
     is_active: number;
+    profile_image: string;
 }
 
 export interface SearchedProfile{
@@ -81,4 +87,9 @@ export interface SearchMatch{
 export interface ChangedFriendActivity{
     index: number;
     is_active: number;
+}
+
+export interface ProfileImage{
+    id: number;
+    image_path: string;
 }

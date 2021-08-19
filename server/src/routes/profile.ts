@@ -8,7 +8,7 @@ import {
     getFriends, 
     fetchCurrentProfile, 
     fetchProfilePosts, 
-    updateProfileDescription, 
+    updateProfile, 
     findProfileUsernameMatches,
     getSearchResults,
     getSendedFriendRequests,
@@ -19,6 +19,9 @@ import {
     getNewNotifications,
     changeActivity,
     checkFriendsActivity,
+    updateProfileImage,
+    getProfileImages,
+    deleteProfileImage
 } from '../controllers/profile';
 import {isAuthorized, userById, profileById} from '../middlewares/user'
 import {check} from 'express-validator';
@@ -43,9 +46,11 @@ router.post("/profile/accept_friend_request/:senderProfileId/:userId/:profileId"
 router.get("/profile/:currentProfile/:userId/:profileId", isAuthorized, fetchCurrentProfile);
 router.get("/profile/:currentProfile/posts/:userId/:profileId", isAuthorized, fetchProfilePosts);
 
-router.put("/profile/description/:userId/:profileId", isAuthorized,[
-    check("description", "Description is required").notEmpty()
-], updateProfileDescription);
+router.put("/profile/:userId/:profileId", isAuthorized,[
+    check("description", "Description is required").notEmpty(),
+    check("status", "Status is required").notEmpty(),
+    check("status", "Status must be public or private").matches(/public|private/)
+], updateProfile);
 
 router.post("/profile/search_profile/:userId/:profileId", isAuthorized, [
     check("firstLetter", "First letter of the username is required").notEmpty()
@@ -69,6 +74,15 @@ router.put("/profile/change_activity/:userId/:profileId", isAuthorized, [
 ], changeActivity);
 
 router.get('/profile/friends/change_in_activity/:userId/:profileId', isAuthorized, checkFriendsActivity);
+
+router.put("/profile/image/:userId/:profileId", isAuthorized, updateProfileImage);
+
+router.get("/profile/:currentProfile/images/:userId/:profileId", isAuthorized, getProfileImages);
+
+router.post("/profile/delete_image/:userId/:profileId", isAuthorized, [
+    check("image", "Image is required").notEmpty(),
+    check("image", "Image must be a string").isString()
+], deleteProfileImage);
 
 router.param("userId", userById);
 router.param("profileId", profileById);

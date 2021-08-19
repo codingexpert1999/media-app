@@ -30,6 +30,7 @@ export interface Post{
     profile_id: number;
     username: string;
     comments: Comment[];
+    profile_image: string;
 }
 
 export interface Comment{

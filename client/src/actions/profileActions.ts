@@ -11,7 +11,7 @@ import {
     ACCEPT_FRIEND_REQUEST,
     FETCH_CURRENT_PROFILE,
     FETCH_CURRENT_PROFILE_POSTS,
-    UPDATE_PROFILE_DESCRIPTION,
+    UPDATE_PROFILE,
     SET_CURRENT_PROFILE_USERNAME,
     FIND_USERNAME_MATCHES,
     CLEAR_MATCHES,
@@ -24,6 +24,9 @@ import {
     READ_NOTIFICATIONS,
     DELETE_NOTIFICATION,
     CHANGE_USER_ACTIVITY,
+    FETCH_PROFILE_IMAGES,
+    DELETE_IMAGE,
+    UPDATE_PROFILE_IMAGE,
 } from '../actionTypes/profileActionTypes';
 import { POSTS_LOADING } from '../actionTypes/postActionTypes';
 
@@ -173,15 +176,15 @@ export const fetchCurrentProfilePosts = (userId: number, profileId: number, curr
     }
 }
 
-export const updateProfileDescription = (userId: number, profileId: number, description: string) => {
+export const updateProfile = (userId: number, profileId: number, formData: Object) => {
     return async (dispatch:Dispatch) => {
         try {
             const contentType = getContentType();
-            const body = getAxiosBody({description});
+            const body = getAxiosBody(formData);
 
-            await axios.put(`${API}/profile/description/${userId}/${profileId}`, body, {...contentType, withCredentials: true});
+            await axios.put(`${API}/profile/${userId}/${profileId}`, body, {...contentType, withCredentials: true});
 
-            dispatch({type: UPDATE_PROFILE_DESCRIPTION, payload: {description}});
+            dispatch({type: UPDATE_PROFILE, payload: formData});
         } catch (err) {
             toast.error("Profile couldn't be updated");
         }
@@ -289,6 +292,49 @@ export const changeUserActivity = (userId: number, profileId: number, isActive: 
             dispatch({type: CHANGE_USER_ACTIVITY, payload: {isActive}});
         } catch (er) {
             toast.error("User activity couldn't be changed");
+        }
+    }
+}
+
+export const updateProfileImage = (userId: number, profileId: number, formData: FormData) => {
+    return async (dispatch: Dispatch) => {
+        const contentType = {
+            'Content-Type': "multipart/form-data"
+        }
+
+        try {
+            const res = await axios.put(`${API}/profile/image/${userId}/${profileId}`, formData, {...contentType, withCredentials: true});
+
+            dispatch({type: UPDATE_PROFILE_IMAGE, payload: res.data});
+        } catch (err) {
+            toast.error("Profile image couldn't be uploaded");
+        }
+    }
+}
+
+export const fetchProfileImages = (userId: number, profileId: number, currentProfile: number) => {
+    return async (dispatch: Dispatch) => {
+        try {
+            const res = await axios.get(`${API}/profile/${currentProfile}/images/${userId}/${profileId}`, {withCredentials: true});
+
+            dispatch({type: FETCH_PROFILE_IMAGES, payload: {profileImages: res.data}});
+        } catch (err) {
+            toast.error("Profile images couldn't be fetched!")
+        }
+    }
+}
+
+export const deleteImage = (userId: number, profileId: number, image: string, currentImage: number) => {
+    return async (dispatch: Dispatch) => {
+        try {
+            const contentType = getContentType()
+            const body = getAxiosBody({image})
+
+            const res = await axios.post(`${API}/profile/delete_image/${userId}/${profileId}`, body, {...contentType, withCredentials: true});
+
+            dispatch({type: DELETE_IMAGE, payload: {...res.data, currentImage}});
+        } catch (err) {
+            toast.error("Image couldn't be deleted!")
         }
     }
 }

@@ -161,6 +161,21 @@ CREATE TABLE messages(
     CONSTRAINT conversationID FOREIGN KEY(conversation_id) REFERENCES conversations(id) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
+CREATE TABLE profile_images(
+	id INT AUTO_INCREMENT PRIMARY KEY,
+    image_path VARCHAR(150),
+    uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    profile_id INT,
+    KEY profileID2(profile_id),
+    CONSTRAINT profileID2 FOREIGN KEY(profile_id) REFERENCES profiles(id) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+ALTER TABLE profile_images ADD CONSTRAINT profilePic UNIQUE INDEX(profile_id, image_path);
+
+DESC profile_images;
+
+INSERT INTO profile_images(profile_id, image_path) VALUES(2, 'https://codingexpert-media-app.fra1.digitaloceanspaces.com/profile-2/udemy-logo.jpg');
+
 -- Procedures
 DELIMITER $$
 CREATE PROCEDURE registerUser(
@@ -241,9 +256,41 @@ BEGIN
 END $$
 DELIMITER ;
 
+DELIMITER $$
+CREATE PROCEDURE deleteImage(
+	IN _profile_id INT,
+    IN _image VARCHAR(255)
+)
+BEGIN
+	DECLARE current_profile_image VARCHAR(255);
+    DECLARE new_profile_image VARCHAR(2525) DEFAULT NULL;
+    
+    SELECT profile_image INTO current_profile_image FROM profiles WHERE id=_profile_id;
+    
+    DELETE FROM profile_images WHERE profile_id=_profile_id AND image_path=_image;
+    
+    IF current_profile_image=_image THEN
+		SELECT image_path INTO new_profile_image FROM profile_images WHERE profile_id=_profile_id ORDER BY uploaded_at DESC LIMIT 1;
+        
+        IF new_profile_image IS NULL THEN
+			UPDATE profiles SET profile_image="/assets/user.png" WHERE id=_profile_id;
+        ELSE
+			UPDATE profiles SET profile_image=new_profile_image WHERE id=_profile_id;
+        END IF;
+        
+    END IF;
+END $$
+DELIMITER ;
+
+DROP PROCEDURE deleteImage;
+
 -- Queries 
 SELECT * FROM users;
 SELECT * FROM profiles;
+
+SELECT * FROM profile_images;
+
+SELECT id, image_path FROM profile_images WHERE profile_id=2;
 
 SELECT * FROM posts;
 SELECT * FROM comments;
@@ -266,7 +313,7 @@ SELECT * FROM messages;
 DELETE FROM messages WHERE id>0;
 
 -- SELECT posts updated query
-SELECT DISTINCT(p.id), p.post_text, p.post_image, p.post_video, p.likes, p.created_at, p.profile_id, u.username FROM posts as p 
+SELECT DISTINCT(p.id), p.post_text, p.post_image, p.post_video, p.likes, p.created_at, p.profile_id, prof.profile_image, u.username FROM posts as p 
 LEFT JOIN friends as f ON f.my_profile_id=2 OR f.friend_profile_id=2
 INNER JOIN profiles as prof ON prof.id=p.profile_id 
 INNER JOIN users as u ON u.id=prof.user_id
